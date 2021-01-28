@@ -17,15 +17,20 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
         <relativePath>../../parent</relativePath>
     </parent>
 
-    <groupId>org.opendaylight.aaa</groupId>
+    <groupId>com.highstreet-technologies.aaa</groupId>
     <artifactId>aaa-shiro</artifactId>
     <version>0.12.1</version>
     <name>ODL :: aaa :: ${project.artifactId}</name>
     <packaging>bundle</packaging>
-
+    <properties>
+        <checkstyle.skip>true</checkstyle.skip>
+        <skip.checkstyle>true</skip.checkstyle>
+        <odlparent.spotbugs.enforce>false</odlparent.spotbugs.enforce>
+        <maven.javadoc.skip>true</maven.javadoc.skip>
+    </properties>
     <dependencies>
         <dependency>
-            <groupId>${project.groupId}</groupId>
+            <groupId>org.opendaylight.aaa</groupId>
             <artifactId>aaa-shiro-api</artifactId>
         </dependency>
 
@@ -227,6 +232,20 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
                                     <classifier>aaa-datastore-config</classifier>
                                 </artifact>
                             </artifacts>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>process-sources</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <failOnViolation>false</failOnViolation>
                         </configuration>
                     </execution>
                 </executions>
