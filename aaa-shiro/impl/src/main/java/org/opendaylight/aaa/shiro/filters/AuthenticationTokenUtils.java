@@ -8,9 +8,9 @@
 package org.opendaylight.aaa.shiro.filters;
 
 import static java.util.Objects.requireNonNull;
-
 import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.authc.UsernamePasswordToken;
+import org.opendaylight.aaa.shiro.filters.backport.BearerToken;
 
 /**
  * Utility methods for forming audit trail output based on an <code>AuthenticationToken</code>.
@@ -48,6 +48,16 @@ public final class AuthenticationTokenUtils {
     }
 
     /**
+     * Determines whether the supplied <code>Token</code> is a <code>UsernamePasswordToken</code>.
+     *
+     * @param token A generic <code>Token</code>, which might be a <code>UsernamePasswordToken</code>
+     * @return Whether the supplied <code>Token</code> is a <code>UsernamePasswordToken</code>
+     */
+    public static boolean isBearerToken(final AuthenticationToken token) {
+        return token instanceof BearerToken;
+    }
+
+    /**
      * Extracts the username if possible.  If the supplied token is a <code>UsernamePasswordToken</code>
      * and the username field is not set, <code>DEFAULT_USERNAME</code> is returned.  If the supplied
      * token is not a <code>UsernamePasswordToken</code> (i.e., a <code>CasToken</code> or other
@@ -61,6 +71,10 @@ public final class AuthenticationTokenUtils {
         if (isUsernamePasswordToken(token)) {
             final UsernamePasswordToken upt = (UsernamePasswordToken) token;
             return extractField(upt.getUsername(), DEFAULT_USERNAME);
+        }
+        if (isBearerToken(token)) {
+            final BearerToken bt = (BearerToken) token;
+            return extractField("", DEFAULT_USERNAME);
         }
         return DEFAULT_TOKEN;
     }
@@ -79,6 +93,10 @@ public final class AuthenticationTokenUtils {
         if (isUsernamePasswordToken(token)) {
             final UsernamePasswordToken upt = (UsernamePasswordToken) token;
             return extractField(upt.getHost(), DEFAULT_HOSTNAME);
+        }
+        if (isBearerToken(token)) {
+            final BearerToken bt = (BearerToken) token;
+            return extractField(bt.getHost(), DEFAULT_USERNAME);
         }
         return DEFAULT_HOSTNAME;
     }

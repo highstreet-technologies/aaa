@@ -8,13 +8,13 @@
 
 package org.opendaylight.aaa.shiro.filters;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.subject.PrincipalCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /**
  * Follows the event-listener pattern;  the <code>Authenticator</code> notifies this class about
@@ -40,7 +40,9 @@ public class AuthenticationListener implements org.apache.shiro.authc.Authentica
     public void onFailure(final AuthenticationToken authenticationToken,
                           final AuthenticationException authenticationException) {
         if (LOG.isDebugEnabled()) {
-            LOG.debug("{}", AuthenticationTokenUtils.generateUnsuccessfulAuthenticationMessage(authenticationToken));
+            LOG.debug("{}", AuthenticationTokenUtils.generateUnsuccessfulAuthenticationMessage(authenticationToken)
+                    ,authenticationException);
+
         }
     }
 
