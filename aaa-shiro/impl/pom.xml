@@ -22,6 +22,7 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
     <version>0.12.1</version>
     <name>ODL :: aaa :: ${project.artifactId}</name>
     <packaging>bundle</packaging>
+
     <properties>
         <checkstyle.skip>true</checkstyle.skip>
         <skip.checkstyle>true</skip.checkstyle>
@@ -189,6 +190,7 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
                             org.opendaylight.aaa.shiro.tokenauthrealm.auth,
                             org.opendaylight.aaa.shiro,
                             org.opendaylight.aaa.shiro.filters,
+                            org.opendaylight.aaa.shiro.filters.backport,
                             org.opendaylight.aaa.shiro.realm,
                             <!-- TODO: This is temporary until we can find a better spot for GsonProvider. -->
                             org.opendaylight.aaa.provider,
