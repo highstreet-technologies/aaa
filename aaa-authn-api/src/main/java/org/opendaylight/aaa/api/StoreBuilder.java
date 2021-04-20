@@ -205,43 +205,44 @@ public class StoreBuilder {
 
     /**
      * Load property from env vars or default.
+     *
      * @param key environment var
      * @param defValue default value if no env var found
      * @return
      */
-     private static String getPropertyOrDefault(final String key, final String defValue) {
-         String value = defValue;
-         //try to read env var
-         boolean found = false;
-         if (isEnvExpression(key)) {
+    private static String getPropertyOrDefault(final String key, final String defValue) {
+        String value = defValue;
+        //try to read env var
+        boolean found = false;
+        if (isEnvExpression(key)) {
 
-             LOG.debug("try to find env var(s) for {}", key);
-             final Matcher matcher = PATTERN.matcher(key);
-             String tmp = key;
-             while (matcher.find() && matcher.groupCount() > 0) {
-                 final String mkey = matcher.group(1);
-                 if (mkey != null) {
-                     try {
-                         LOG.debug("match found for v={} and env key={}", key, mkey);
-                         String envvar = mkey.substring(2, mkey.length() - 1);
-                         String env = System.getenv(envvar);
-                         tmp = tmp.replace(mkey, env == null ? "" : env);
-                         if (env != null && !env.isEmpty()) {
-                             found = true;
-                         }
-                     } catch (SecurityException e) {
-                         LOG.warn("unable to read env {}: ", key, e);
-                     }
-                 }
-             }
-             if (found) {
-                 value = tmp;
-             }
-         }
-         return value;
-     }
+            LOG.debug("try to find env var(s) for {}", key);
+            final Matcher matcher = PATTERN.matcher(key);
+            String tmp = key;
+            while (matcher.find() && matcher.groupCount() > 0) {
+                final String mkey = matcher.group(1);
+                if (mkey != null) {
+                    try {
+                        LOG.debug("match found for v={} and env key={}", key, mkey);
+                        String envvar = mkey.substring(2, mkey.length() - 1);
+                        String env = System.getenv(envvar);
+                        tmp = tmp.replace(mkey, env == null ? "" : env);
+                        if (env != null && !env.isEmpty()) {
+                            found = true;
+                        }
+                    } catch (SecurityException e) {
+                        LOG.warn("unable to read env {}: ", key, e);
+                    }
+                }
+            }
+            if (found) {
+                value = tmp;
+            }
+        }
+        return value;
+    }
 
-     static boolean isEnvExpression(String key) {
-         return key != null && key.contains(ENVVARIABLE);
-     }
+    static boolean isEnvExpression(String key) {
+        return key != null && key.contains(ENVVARIABLE);
+    }
 }
