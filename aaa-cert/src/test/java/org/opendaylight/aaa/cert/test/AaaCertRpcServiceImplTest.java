@@ -90,7 +90,7 @@ public class AaaCertRpcServiceImplTest {
         final List<CipherSuites> cipherSuites = new ArrayList<>(Arrays.asList(cipherSuite));
 
         signedSslData = new SslDataBuilder().setCipherSuites(cipherSuites).setOdlKeystore(signedOdlKeystore)
-                .setTrustKeystore(signedTrustKeyStore).setTlsProtocols(PROTOCOL).setBundleName(BUNDLE_NAME).build();
+                .setTrustKeystore(signedTrustKeyStore).setTlsProtocols(PROTOCOL).build();
 
         final OdlKeystore unsignedOdlKeystore = new OdlKeystoreBuilder().setAlias(ALIAS).setDname(D_NAME)
                 .setName(ODL_NAME).setStorePassword(PASSWORD).setValidity(KeyStoreConstant.DEFAULT_VALIDITY)
@@ -99,7 +99,7 @@ public class AaaCertRpcServiceImplTest {
                 .build();
 
         unsignedSslData = new SslDataBuilder().setOdlKeystore(unsignedOdlKeystore)
-                .setTrustKeystore(unsignedTrustKeyStore).setBundleName(BUNDLE_NAME).build();
+                .setTrustKeystore(unsignedTrustKeyStore).build();
 
         when(aaaEncryptionServiceInit.decrypt(unsignedTrustKeyStore.getKeystoreFile()))
                 .thenReturn(unsignedTrustKeyStore.getKeystoreFile());
@@ -109,9 +109,8 @@ public class AaaCertRpcServiceImplTest {
         aaaEncryptionService = aaaEncryptionServiceInit;
 
         final AaaCertServiceConfig aaaCertServiceConfigInit = mock(AaaCertServiceConfig.class);
-        when(aaaCertServiceConfigInit.getUseConfig()).thenReturn(true);
-        when(aaaCertServiceConfigInit.getUseMdsal()).thenReturn(true);
-        when(aaaCertServiceConfigInit.getBundleName()).thenReturn(BUNDLE_NAME);
+        when(aaaCertServiceConfigInit.isUseConfig()).thenReturn(true);
+        when(aaaCertServiceConfigInit.isUseMdsal()).thenReturn(true);
         aaaCertServiceConfig = aaaCertServiceConfigInit;
 
         // Create class

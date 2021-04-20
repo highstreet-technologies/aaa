@@ -66,7 +66,7 @@ public class CertificateManagerService implements ICertificateManager {
         if (aaaCertServiceConfig == null) {
             throw new IllegalArgumentException("Certificate Manager service configuration is null");
         }
-        if (aaaCertServiceConfig.getUseConfig()) {
+        if (aaaCertServiceConfig.isUseConfig()) {
             if (aaaCertServiceConfig.getCtlKeystore() != null
                     && aaaCertServiceConfig.getCtlKeystore().getStorePassword() != null
                     && aaaCertServiceConfig.getCtlKeystore().getStorePassword().isEmpty()) {
@@ -81,7 +81,7 @@ public class CertificateManagerService implements ICertificateManager {
                 aaaCertServiceConfig = new AaaCertServiceConfigBuilder(aaaCertServiceConfig).setCtlKeystore(ctlKeystore)
                         .setTrustKeystore(trustKeystore).build();
             }
-            if (aaaCertServiceConfig.getUseMdsal()) {
+            if (aaaCertServiceConfig.isUseMdsal()) {
                 aaaCertProvider = new DefaultMdsalSslData(new AaaCertMdsalProvider(dataBroker, encryptionSrv),
                         aaaCertServiceConfig.getBundleName(), aaaCertServiceConfig.getCtlKeystore(),
                         aaaCertServiceConfig.getTrustKeystore());

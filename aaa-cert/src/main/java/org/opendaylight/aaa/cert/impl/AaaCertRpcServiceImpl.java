@@ -53,8 +53,8 @@ public class AaaCertRpcServiceImpl implements AaaCertRpcService {
 
     public AaaCertRpcServiceImpl(final AaaCertServiceConfig aaaCertServiceConfig, final DataBroker dataBroker,
             final AAAEncryptionService encryptionSrv) {
-        if (aaaCertServiceConfig.getUseConfig()) {
-            if (aaaCertServiceConfig.getUseMdsal()) {
+        if (aaaCertServiceConfig.isUseConfig()) {
+            if (aaaCertServiceConfig.isUseMdsal()) {
                 aaaCertProvider = new DefaultMdsalSslData(new AaaCertMdsalProvider(dataBroker, encryptionSrv),
                         aaaCertServiceConfig.getBundleName(), aaaCertServiceConfig.getCtlKeystore(),
                         aaaCertServiceConfig.getTrustKeystore());

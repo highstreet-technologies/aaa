@@ -126,8 +126,8 @@ public class ODLJndiLdapRealm extends DefaultLdapRealm {
      * .apache.shiro.authc.AuthenticationToken)
      */
     @Override
-    protected AuthenticationInfo doGetAuthenticationInfo(final AuthenticationToken token)
-            throws AuthenticationException {
+    protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken token) throws AuthenticationException {
+
         // Delegates all AuthN lookup responsibility to the super class
         try {
             final String username = getUsername(token);
@@ -135,8 +135,8 @@ public class ODLJndiLdapRealm extends DefaultLdapRealm {
             return super.doGetAuthenticationInfo(token);
         } catch (ClassCastException e) {
             LOG.info("Couldn't service the LDAP connection", e);
-            return null;
         }
+        return null;
     }
 
     /**
@@ -156,8 +156,11 @@ public class ODLJndiLdapRealm extends DefaultLdapRealm {
      * @throws ClassCastException The incoming token is not username/password (i.e., X.509
      *                            certificate)
      */
-    public static String getUsername(final AuthenticationToken token) throws ClassCastException {
-        return token == null ? null : (String) token.getPrincipal();
+    public static String getUsername(AuthenticationToken token) throws ClassCastException {
+        if (null == token) {
+            return null;
+        }
+        return (String) token.getPrincipal();
     }
 
     /**
@@ -169,11 +172,15 @@ public class ODLJndiLdapRealm extends DefaultLdapRealm {
      *                            username/password form (i.e., X.509 certificate)
      */
     protected String getUsername(final PrincipalCollection principals) throws ClassCastException {
-        return principals == null ? null : (String) getAvailablePrincipal(principals);
+
+        if (null == principals) {
+            return null;
+        }
+        return (String) getAvailablePrincipal(principals);
     }
 
     @Override
-    protected AuthorizationInfo doGetAuthorizationInfo(final PrincipalCollection principals) {
+    protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals) {
 
         AuthorizationInfo ai = null;
         try {
@@ -197,8 +204,9 @@ public class ODLJndiLdapRealm extends DefaultLdapRealm {
      * .PrincipalCollection, org.apache.shiro.realm.ldap.LdapContextFactory)
      */
     @Override
-    protected AuthorizationInfo queryForAuthorizationInfo(final PrincipalCollection principals,
-            final LdapContextFactory ldapContextFactory) throws NamingException {
+    protected AuthorizationInfo queryForAuthorizationInfo(PrincipalCollection principals,
+                                                          LdapContextFactory ldapContextFactory) throws
+            NamingException {
 
         AuthorizationInfo authorizationInfo = null;
         try {
@@ -219,7 +227,10 @@ public class ODLJndiLdapRealm extends DefaultLdapRealm {
     }
 
     public static AuthorizationInfo buildAuthorizationInfo(final Set<String> roleNames) {
-        return roleNames == null ? null : new SimpleAuthorizationInfo(roleNames);
+        if (null == roleNames) {
+            return null;
+        }
+        return new SimpleAuthorizationInfo(roleNames);
     }
 
     /**
@@ -231,8 +242,8 @@ public class ODLJndiLdapRealm extends DefaultLdapRealm {
      * @return A set of roles
      * @throws NamingException If the ldap search fails
      */
-    protected Set<String> getRoleNamesForUser(final String username, final LdapContext ldapContext)
-            throws NamingException {
+    protected Set<String> getRoleNamesForUser(final String username,
+                                              final LdapContext ldapContext) throws NamingException {
 
         final Set<String> roleNames = new LinkedHashSet<>();
         final SearchControls searchControls = createSearchControls();
@@ -253,7 +264,7 @@ public class ODLJndiLdapRealm extends DefaultLdapRealm {
                     LOG.debug("LDAP returned \"{}\" attribute for \"{}\"", attr.getID(), username);
                     if (attr.getID().equals(ldapAttributeForComparison)) {
                         final Collection<String> groupNamesExtractedFromLdap = LdapUtils.getAllAttributeValues(attr);
-                        final Map<String, Set<String>> groupsToRoles = GROUPS_TO_ROLES_MAPPING_STRATEGY
+                        final Map<String, Set<String>> groupsToRoles = this.GROUPS_TO_ROLES_MAPPING_STRATEGY
                                 .mapGroupsToRoles(groupNamesExtractedFromLdap, ROLE_NAMES_DELIMITER, groupRolesMap);
 
                         final Collection<String> roleNamesFromLdapGroups;

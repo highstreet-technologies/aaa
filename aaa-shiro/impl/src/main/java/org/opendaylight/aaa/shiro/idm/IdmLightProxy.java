@@ -12,9 +12,8 @@ import static java.util.Objects.requireNonNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import javax.inject.Inject;
-import javax.inject.Singleton;
 import org.opendaylight.aaa.api.AuthenticationException;
 import org.opendaylight.aaa.api.Claim;
 import org.opendaylight.aaa.api.ClaimCache;
@@ -38,8 +37,8 @@ import org.slf4j.LoggerFactory;
 /**
  * An OSGi proxy for the IdmLight server.
  */
-@Singleton
 public class IdmLightProxy implements PasswordCredentialAuth, IdMService, ClaimCache {
+
     private static final Logger LOG = LoggerFactory.getLogger(IdmLightProxy.class);
 
     /**
@@ -51,10 +50,9 @@ public class IdmLightProxy implements PasswordCredentialAuth, IdMService, ClaimC
     private final IIDMStore idmStore;
     private final PasswordHashService passwordService;
 
-    @Inject
     public IdmLightProxy(final IIDMStore idmStore, final PasswordHashService passwordService) {
         this.idmStore = idmStore;
-        this.passwordService = requireNonNull(passwordService);
+        this.passwordService = Objects.requireNonNull(passwordService);
     }
 
     @Override
