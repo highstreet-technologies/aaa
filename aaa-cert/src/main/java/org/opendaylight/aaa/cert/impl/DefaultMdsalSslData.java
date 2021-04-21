@@ -5,10 +5,11 @@
  * terms of the Eclipse Public License v1.0 which accompanies this distribution,
  * and is available at http://www.eclipse.org/legal/epl-v10.html
  */
-
 package org.opendaylight.aaa.cert.impl;
 
-import com.google.common.base.MoreObjects;
+import static java.util.Objects.requireNonNull;
+import static java.util.Objects.requireNonNullElse;
+
 import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +40,7 @@ public class DefaultMdsalSslData implements IAaaCertProvider {
 
     public DefaultMdsalSslData(final AaaCertMdsalProvider aaaCertMdsalProv, final String bundleName,
             final CtlKeystore ctlKeyStore, final TrustKeystore trustKeystore) {
-        this.bundleName = bundleName;
+        this.bundleName = requireNonNull(bundleName);
         this.aaaCertMdsalProv = aaaCertMdsalProv;
         this.ctlKeyStore = ctlKeyStore;
         this.trustKeystore = trustKeystore;
@@ -99,7 +100,7 @@ public class DefaultMdsalSslData implements IAaaCertProvider {
 
     @Override
     public String getCertificateTrustStore(String alias, boolean withTag) {
-        return MoreObjects.firstNonNull(aaaCertMdsalProv.getTrustStoreCertificate(bundleName, alias, withTag), "");
+        return requireNonNullElse(aaaCertMdsalProv.getTrustStoreCertificate(bundleName, alias, withTag), "");
     }
 
     @Override
@@ -113,7 +114,7 @@ public class DefaultMdsalSslData implements IAaaCertProvider {
 
     @Override
     public String getODLKeyStoreCertificate(final boolean withTag) {
-        return MoreObjects.firstNonNull(aaaCertMdsalProv.getODLStoreCertificate(bundleName, withTag), "");
+        return requireNonNullElse(aaaCertMdsalProv.getODLStoreCertificate(bundleName, withTag), "");
     }
 
     @Override

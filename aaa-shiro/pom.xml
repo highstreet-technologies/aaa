@@ -11,13 +11,13 @@ and is available at http://www.eclipse.org/legal/epl-v10.html INTERNAL
   <parent>
     <groupId>org.opendaylight.odlparent</groupId>
     <artifactId>odlparent-lite</artifactId>
-    <version>7.0.8</version>
+    <version>8.1.1</version>
     <relativePath/>
   </parent>
 
   <groupId>org.opendaylight.aaa</groupId>
   <artifactId>aaa-shiro-aggregator</artifactId>
-  <version>0.12.3</version>
+  <version>0.13.2</version>
   <name>ODL :: aaa :: ${project.artifactId}</name>
   <packaging>pom</packaging>
 

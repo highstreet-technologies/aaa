@@ -12,13 +12,13 @@
     <parent>
         <groupId>org.opendaylight.odlparent</groupId>
         <artifactId>single-feature-parent</artifactId>
-        <version>7.0.8</version>
+        <version>8.1.1</version>
         <relativePath/>
     </parent>
 
     <groupId>org.opendaylight.aaa</groupId>
     <artifactId>odl-aaa-shiro</artifactId>
-    <version>0.12.3</version>
+    <version>0.13.2</version>
     <packaging>feature</packaging>
 
     <!-- odl-aaa-shiro feature which combines all aspects of AAA into one feature -->
@@ -43,16 +43,6 @@
             <version>${project.version}</version>
             <classifier>features</classifier>
             <type>xml</type>
-        </dependency>
-
-        <!-- OSGI -->
-        <dependency>
-            <groupId>org.apache.felix</groupId>
-            <artifactId>org.apache.felix.dependencymanager</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.felix</groupId>
-            <artifactId>org.apache.felix.metatype</artifactId>
         </dependency>
 
         <dependency>
