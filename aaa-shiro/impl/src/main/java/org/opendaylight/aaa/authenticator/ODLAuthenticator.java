@@ -15,11 +15,13 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.ShiroException;
 import org.apache.shiro.authc.AuthenticationException;
+import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.session.Session;
 import org.apache.shiro.session.UnknownSessionException;
 import org.apache.shiro.subject.Subject;
 import org.jolokia.osgi.security.Authenticator;
+import org.opendaylight.aaa.shiro.filters.backport.BearerToken;
 import org.osgi.service.component.annotations.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,18 +45,34 @@ public class ODLAuthenticator implements Authenticator {
 
         LOG.trace("Incoming Jolokia authentication attempt: {}", authorization);
 
-        if (authorization == null || !authorization.startsWith("Basic")) {
+        if (authorization == null) {
             return false;
         }
-
-        try {
-            final String base64Creds = authorization.substring("Basic".length()).trim();
-            String credentials = new String(Base64.getDecoder().decode(base64Creds), StandardCharsets.UTF_8);
-            final String[] values = credentials.split(":", 2);
-            UsernamePasswordToken upt = new UsernamePasswordToken();
-            upt.setUsername(values[0]);
-            upt.setPassword(values[1].toCharArray());
-
+        if( authorization.startsWith("Basic")) {
+	        try {
+	            final String base64Creds = authorization.substring("Basic".length()).trim();
+	            String credentials = new String(Base64.getDecoder().decode(base64Creds), StandardCharsets.UTF_8);
+	            final String[] values = credentials.split(":", 2);
+	            UsernamePasswordToken upt = new UsernamePasswordToken();
+	            upt.setUsername(values[0]);
+	            upt.setPassword(values[1].toCharArray());
+	
+	            try {
+	                return login(upt);
+	            } catch (UnknownSessionException e) {
+	                LOG.debug("Couldn't log in {} - logging out and retrying...", upt, e);
+	                logout();
+	                return login(upt);
+	            }
+	        } catch (ArrayIndexOutOfBoundsException e) {
+	            // FIXME: who throws this above and why do we need to catch it? Should this be error or warn?
+	            LOG.trace("Formatting issue with basic auth credentials: {}", authorization, e);
+	        }
+        }
+        else if (authorization.startsWith("Bearer")) {
+            final String token = authorization.substring("Bearer".length()).trim();
+            LOG.debug("try to login with bearer token {}",token);
+            BearerToken upt = new BearerToken(token);
             try {
                 return login(upt);
             } catch (UnknownSessionException e) {
@@ -62,11 +80,7 @@ public class ODLAuthenticator implements Authenticator {
                 logout();
                 return login(upt);
             }
-        } catch (ArrayIndexOutOfBoundsException e) {
-            // FIXME: who throws this above and why do we need to catch it? Should this be error or warn?
-            LOG.trace("Formatting issue with basic auth credentials: {}", authorization, e);
         }
-
         return false;
     }
 
@@ -83,7 +97,7 @@ public class ODLAuthenticator implements Authenticator {
         }
     }
 
-    private static boolean login(final UsernamePasswordToken upt) {
+    private static boolean login(final AuthenticationToken upt) {
         final Subject subject = SecurityUtils.getSubject();
         try {
             subject.login(upt);

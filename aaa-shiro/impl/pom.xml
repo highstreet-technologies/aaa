@@ -17,7 +17,7 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
         <relativePath>../../parent</relativePath>
     </parent>
 
-    <groupId>org.opendaylight.aaa</groupId>
+    <groupId>com.highstreet-technologies.aaa</groupId>
     <artifactId>aaa-shiro</artifactId>
     <version>0.13.3</version>
     <name>ODL :: aaa :: ${project.artifactId}</name>
@@ -25,7 +25,7 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
 
     <dependencies>
         <dependency>
-            <groupId>${project.groupId}</groupId>
+            <groupId>org.opendaylight.aaa</groupId>
             <artifactId>aaa-shiro-api</artifactId>
         </dependency>
 
@@ -184,6 +184,7 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
                             org.opendaylight.aaa.shiro.tokenauthrealm.auth,
                             org.opendaylight.aaa.shiro,
                             org.opendaylight.aaa.shiro.filters,
+                            org.opendaylight.aaa.shiro.filters.backport,
                             org.opendaylight.aaa.shiro.realm,
                             <!-- TODO: This is temporary until we can find a better spot for GsonProvider. -->
                             org.opendaylight.aaa.provider,
@@ -227,6 +228,48 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
                                     <classifier>aaa-datastore-config</classifier>
                                 </artifact>
                             </artifacts>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>process-sources</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <failOnViolation>false</failOnViolation>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>check-license</id>
+                        <phase>process-sources</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <failOnViolation>false</failOnViolation>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.github.spotbugs</groupId>
+                <artifactId>spotbugs-maven-plugin</artifactId>
+                <version>3.1.12.2</version>
+                <executions>
+                    <execution>
+                        <id>analyze-compile</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <failOnError>false</failOnError>
+                            <skip>true</skip>
                         </configuration>
                     </execution>
                 </executions>

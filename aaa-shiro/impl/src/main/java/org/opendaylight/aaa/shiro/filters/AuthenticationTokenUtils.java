@@ -11,6 +11,7 @@ import static java.util.Objects.requireNonNull;
 
 import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.authc.UsernamePasswordToken;
+import org.opendaylight.aaa.shiro.filters.backport.BearerToken;
 
 /**
  * Utility methods for forming audit trail output based on an <code>AuthenticationToken</code>.
@@ -45,6 +46,16 @@ public final class AuthenticationTokenUtils {
      */
     public static boolean isUsernamePasswordToken(final AuthenticationToken token) {
         return token instanceof UsernamePasswordToken;
+    }
+
+    /**
+     * Determines whether the supplied <code>Token</code> is a <code>UsernamePasswordToken</code>.
+     *
+     * @param token A generic <code>Token</code>, which might be a <code>UsernamePasswordToken</code>
+     * @return Whether the supplied <code>Token</code> is a <code>UsernamePasswordToken</code>
+     */
+    public static boolean isBearerToken(final AuthenticationToken token) {
+        return token instanceof BearerToken;
     }
 
     /**

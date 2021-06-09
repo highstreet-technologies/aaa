@@ -40,8 +40,8 @@ public class AuthenticationListener implements org.apache.shiro.authc.Authentica
     public void onFailure(final AuthenticationToken authenticationToken,
                           final AuthenticationException authenticationException) {
         if (LOG.isDebugEnabled()) {
-            LOG.debug("{}", AuthenticationTokenUtils.generateUnsuccessfulAuthenticationMessage(authenticationToken));
-        }
+            LOG.debug("{}", AuthenticationTokenUtils.generateUnsuccessfulAuthenticationMessage(authenticationToken)
+                    ,authenticationException);        }
     }
 
     @Override
