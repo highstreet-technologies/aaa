@@ -12,7 +12,7 @@
     <parent>
         <groupId>org.opendaylight.aaa</groupId>
         <artifactId>aaa-parent</artifactId>
-        <version>0.13.2</version>
+        <version>0.13.5</version>
         <relativePath>../../parent</relativePath>
     </parent>
 
@@ -35,7 +35,7 @@
             <artifactId>jersey-client</artifactId>
         </dependency>
         <dependency>
-            <groupId>javax.inject</groupId>
+            <groupId>com.guicedee.services</groupId>
             <artifactId>javax.inject</artifactId>
             <optional>true</optional>
         </dependency>

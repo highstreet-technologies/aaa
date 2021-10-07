@@ -13,13 +13,13 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
     <parent>
         <groupId>org.opendaylight.aaa</groupId>
         <artifactId>aaa-parent</artifactId>
-        <version>0.13.2</version>
+        <version>0.13.5</version>
         <relativePath>../../parent</relativePath>
     </parent>
 
     <groupId>org.opendaylight.aaa</groupId>
     <artifactId>aaa-shiro</artifactId>
-    <version>0.13.2</version>
+    <version>0.13.5</version>
     <name>ODL :: aaa :: ${project.artifactId}</name>
     <packaging>bundle</packaging>
 
@@ -40,14 +40,8 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
             <artifactId>aaa-cert</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.shiro</groupId>
-            <artifactId>shiro-web</artifactId>
-        </dependency>
-        <!-- Enforce newer commons-collections versions -->
-        <dependency>
-            <groupId>commons-collections</groupId>
-            <artifactId>commons-collections</artifactId>
-            <version>3.2.2</version>
+            <groupId>org.opendaylight.aaa</groupId>
+            <artifactId>repackaged-shiro</artifactId>
         </dependency>
 
         <dependency>
@@ -73,10 +67,9 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
             <artifactId>osgi.cmpn</artifactId>
         </dependency>
         <dependency>
-            <groupId>javax.inject</groupId>
+            <groupId>com.guicedee.services</groupId>
             <artifactId>javax.inject</artifactId>
             <optional>true</optional>
-            <scope>provided</scope>
         </dependency>
 
         <!-- JSON JAXB Stuff -->

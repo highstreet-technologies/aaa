@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
- Copyright © 2017 Red Hat, Inc. and others.
+ Copyright © 2021 PANTHEON.tech, s.r.o. and others.  All rights reserved.
 
  This program and the accompanying materials are made available under the
  terms of the Eclipse Public License v1.0 which accompanies this distribution,
  and is available at http://www.eclipse.org/legal/epl-v10.html
  -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -17,11 +19,17 @@
     </parent>
 
     <groupId>org.opendaylight.aaa</groupId>
-    <artifactId>odl-aaa-encryption-service</artifactId>
+    <artifactId>odl-apache-shiro</artifactId>
     <version>0.13.5</version>
     <packaging>feature</packaging>
 
-    <name>ODL :: aaa :: ${project.artifactId}</name>
+    <name>OpenDaylight :: Apache Shiro</name>
+    <description>Apache Shiro (repackaged)</description>
+
+    <properties>
+        <checkDependencyChange>true</checkDependencyChange>
+        <failOnDependencyChange>true</failOnDependencyChange>
+    </properties>
 
     <dependencyManagement>
         <dependencies>
@@ -36,29 +44,15 @@
     </dependencyManagement>
 
     <dependencies>
-        <!-- MD-SAL -->
         <dependency>
-            <groupId>org.opendaylight.controller</groupId>
-            <artifactId>odl-mdsal-broker</artifactId>
-            <version>3.0.10</version>
+            <groupId>org.opendaylight.odlparent</groupId>
+            <artifactId>odl-servlet-api</artifactId>
             <type>xml</type>
             <classifier>features</classifier>
         </dependency>
-
         <dependency>
             <groupId>org.opendaylight.aaa</groupId>
-            <artifactId>aaa-encrypt-service</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.opendaylight.aaa</groupId>
-            <artifactId>aaa-encrypt-service-impl</artifactId>
-        </dependency>
-        <dependency>
-            <!-- finalname="etc/opendaylight/datastore/initial/config/aaa-encrypt-service-config.xml" -->
-            <groupId>org.opendaylight.aaa</groupId>
-            <artifactId>aaa-encrypt-service-impl</artifactId>
-            <type>xml</type>
-            <classifier>config</classifier>
+            <artifactId>repackaged-shiro</artifactId>
         </dependency>
     </dependencies>
 </project>
