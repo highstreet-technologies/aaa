@@ -27,7 +27,6 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
-import javax.xml.bind.DatatypeConverter;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -126,16 +125,17 @@ public class AAAEncryptionServiceImpl implements AAAEncryptionService {
             LOG.warn("Encryption Key is NULL, will not encrypt data.");
             return data;
         }
+
+        final byte[] cryptobytes;
         try {
             synchronized (encryptCipher) {
-                byte[] cryptobytes = encryptCipher.doFinal(data.getBytes(Charset.defaultCharset()));
-                String cryptostring = DatatypeConverter.printBase64Binary(cryptobytes);
-                return cryptostring;
+                cryptobytes = encryptCipher.doFinal(data.getBytes(Charset.defaultCharset()));
             }
         } catch (IllegalBlockSizeException | BadPaddingException e) {
             LOG.error("Failed to encrypt data.", e);
+            return data;
         }
-        return data;
+        return Base64.getEncoder().encodeToString(cryptobytes);
     }
 
     @Override
@@ -152,8 +152,8 @@ public class AAAEncryptionServiceImpl implements AAAEncryptionService {
             }
         } catch (IllegalBlockSizeException | BadPaddingException e) {
             LOG.error("Failed to encrypt data.", e);
+            return data;
         }
-        return data;
     }
 
     @Override
@@ -162,14 +162,16 @@ public class AAAEncryptionServiceImpl implements AAAEncryptionService {
             LOG.warn("String {} was not decrypted.", encryptedData);
             return encryptedData;
         }
+
+        final byte[] cryptobytes = Base64.getDecoder().decode(encryptedData);
+        final byte[] clearbytes;
         try {
-            byte[] cryptobytes = DatatypeConverter.parseBase64Binary(encryptedData);
-            byte[] clearbytes = decryptCipher.doFinal(cryptobytes);
-            return new String(clearbytes, Charset.defaultCharset());
+            clearbytes = decryptCipher.doFinal(cryptobytes);
         } catch (IllegalBlockSizeException | BadPaddingException e) {
             LOG.error("Failed to decrypt encoded data", e);
+            return encryptedData;
         }
-        return encryptedData;
+        return new String(clearbytes, Charset.defaultCharset());
     }
 
     @Override

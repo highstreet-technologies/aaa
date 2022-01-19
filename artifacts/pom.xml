@@ -13,13 +13,13 @@
     <parent>
       <groupId>org.opendaylight.odlparent</groupId>
       <artifactId>odlparent-lite</artifactId>
-      <version>8.1.3</version>
+      <version>9.0.8</version>
       <relativePath/>
     </parent>
 
     <groupId>org.opendaylight.aaa</groupId>
     <artifactId>aaa-artifacts</artifactId>
-    <version>0.13.5</version>
+    <version>0.14.7</version>
     <name>ODL :: aaa :: ${project.artifactId}</name>
     <packaging>pom</packaging>
 
@@ -89,6 +89,12 @@
 
             <dependency>
                 <groupId>${project.groupId}</groupId>
+                <artifactId>aaa-idm-store-h2</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>${project.groupId}</groupId>
                 <artifactId>aaa-shiro</artifactId>
                 <version>${project.version}</version>
                 <type>xml</type>
@@ -103,6 +109,11 @@
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>aaa-shiro</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>aaa-tokenauthrealm</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
