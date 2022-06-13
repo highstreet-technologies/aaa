@@ -11,13 +11,13 @@
   <parent>
     <groupId>org.opendaylight.odlparent</groupId>
     <artifactId>odlparent-lite</artifactId>
-    <version>8.1.3</version>
+    <version>10.0.0</version>
     <relativePath/>
   </parent>
 
   <groupId>org.opendaylight.aaa</groupId>
   <artifactId>aaa.project</artifactId>
-  <version>0.13.5</version>
+  <version>0.16.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>aaa</name> <!-- Used by Sonar to set project name -->
 
@@ -33,11 +33,13 @@
     <module>aaa-cli</module>
     <module>aaa-cli-jar</module>
     <module>aaa-filterchain</module>
+    <module>aaa-idm-store-h2</module>
     <module>aaa-password-service</module>
     <module>artifacts</module>
     <module>features</module>
     <module>parent</module>
     <module>aaa-shiro</module>
+    <module>aaa-tokenauthrealm</module>
     <module>dependency-check</module>
     <module>web</module>
     <module>docs</module>

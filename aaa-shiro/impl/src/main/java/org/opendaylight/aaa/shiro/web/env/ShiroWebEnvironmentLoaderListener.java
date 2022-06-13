@@ -14,7 +14,7 @@ import org.opendaylight.aaa.api.AuthenticationService;
 import org.opendaylight.aaa.api.TokenStore;
 import org.opendaylight.aaa.api.password.service.PasswordHashService;
 import org.opendaylight.aaa.cert.api.ICertificateManager;
-import org.opendaylight.aaa.shiro.tokenauthrealm.auth.TokenAuthenticators;
+import org.opendaylight.aaa.tokenauthrealm.auth.TokenAuthenticators;
 import org.opendaylight.mdsal.binding.api.DataBroker;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.aaa.app.config.rev170619.ShiroConfiguration;
 import org.slf4j.Logger;
@@ -25,7 +25,9 @@ import org.slf4j.LoggerFactory;
  *
  * @author Thomas Pantelis
  */
-public class ShiroWebEnvironmentLoaderListener extends EnvironmentLoaderListener {
+// FIXME: @WebListener and CDI (or whatever) injection?
+// FIXME: @Component with ServletContextListener
+public final class ShiroWebEnvironmentLoaderListener extends EnvironmentLoaderListener {
     private static final Logger LOG = LoggerFactory.getLogger(ShiroWebEnvironmentLoaderListener.class);
 
     private final ShiroConfiguration shiroConfiguration;
@@ -36,6 +38,8 @@ public class ShiroWebEnvironmentLoaderListener extends EnvironmentLoaderListener
     private final TokenStore tokenStore;
     private final PasswordHashService passwordHashService;
 
+    // FIXME: @Inject for CDI, except we have ShiroConfiguration injected
+    // FIXME: @Activate for OSGi @Component, except we have ShiroConfiguration which needs to come from somewhere
     public ShiroWebEnvironmentLoaderListener(final ShiroConfiguration shiroConfiguration, final DataBroker dataBroker,
                                              final ICertificateManager certificateManager,
                                              final AuthenticationService authenticationService,

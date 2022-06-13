@@ -12,17 +12,17 @@
   <parent>
     <groupId>org.opendaylight.aaa</groupId>
     <artifactId>aaa-parent</artifactId>
-    <version>0.13.5</version>
+    <version>0.16.0-SNAPSHOT</version>
     <relativePath>../../parent</relativePath>
   </parent>
 
   <groupId>org.opendaylight.aaa.web</groupId>
   <artifactId>web-api</artifactId>
-  <version>0.13.5</version>
   <name>ODL :: aaa :: ${project.artifactId}</name>
   <packaging>bundle</packaging>
 
   <dependencies>
+
     <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>javax.servlet-api</artifactId>
@@ -32,11 +32,9 @@
       <artifactId>value</artifactId>
       <classifier>annotations</classifier>
     </dependency>
-
     <dependency>
-      <groupId>com.google.truth</groupId>
-      <artifactId>truth</artifactId>
+      <groupId>org.opendaylight.yangtools</groupId>
+      <artifactId>concepts</artifactId>
     </dependency>
   </dependencies>
-
 </project>
