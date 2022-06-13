@@ -12,6 +12,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.opendaylight.aaa.api.model.Domain;
 import org.opendaylight.aaa.api.model.Grant;
 import org.opendaylight.aaa.api.model.Grants;
@@ -48,6 +50,9 @@ import org.slf4j.LoggerFactory;
 public class StoreBuilder {
 
     private static final Logger LOG = LoggerFactory.getLogger(StoreBuilder.class);
+    private static final String ENVVARIABLE = "${";
+    private static final String REGEXENVVARIABLE = "(\\$\\{[A-Z0-9_-]+\\})";
+    private static final Pattern PATTERN = Pattern.compile(REGEXENVVARIABLE);
 
     private final IIDMStore store;
 
@@ -113,7 +118,8 @@ public class StoreBuilder {
     public void initWithDefaultUsers(String domainID) throws IDMStoreException {
         String newDomainID = initDomainAndRolesWithoutUsers(domainID);
         if (newDomainID != null) {
-            createUser(newDomainID, "admin", "admin", true);
+            createUser(newDomainID, getPropertyOrDefault("${ODL_ADMIN_USERNAME}", "admin"),
+                    getPropertyOrDefault("${ODL_ADMIN_PASSWORD}", "admin"), true);
         }
     }
 
@@ -195,5 +201,47 @@ public class StoreBuilder {
         grant.setRoleid(roleID);
         store.writeGrant(grant);
         LOG.debug("Granted '{}' user the '{}' role in domain '{}'", userID, roleID, domainID);
+    }
+
+    /**
+     * Load property from env vars or default.
+     *
+     * @param key environment var
+     * @param defValue default value if no env var found
+     * @return env var value or default value if not exists
+     */
+    private static String getPropertyOrDefault(final String key, final String defValue) {
+        String value = defValue;
+        //try to read env var
+        boolean found = false;
+        if (isEnvExpression(key)) {
+            LOG.debug("try to find env var(s) for {}", key);
+            final Matcher matcher = PATTERN.matcher(key);
+            String tmp = key;
+            while (matcher.find() && matcher.groupCount() > 0) {
+                final String mkey = matcher.group(1);
+                if (mkey != null) {
+                    try {
+                        LOG.debug("match found for v={} and env key={}", key, mkey);
+                        String envvar = mkey.substring(2, mkey.length() - 1);
+                        String env = System.getenv(envvar);
+                        tmp = tmp.replace(mkey, env == null ? "" : env);
+                        if (env != null && !env.isEmpty()) {
+                            found = true;
+                        }
+                    } catch (SecurityException e) {
+                        LOG.warn("unable to read env {}: ", key, e);
+                    }
+                }
+            }
+            if (found) {
+                value = tmp;
+            }
+        }
+        return value;
+    }
+
+    static boolean isEnvExpression(String key) {
+        return key != null && key.contains(ENVVARIABLE);
     }
 }

@@ -15,7 +15,7 @@
     <relativePath>../parent</relativePath>
   </parent>
 
-  <groupId>org.opendaylight.aaa</groupId>
+  <groupId>com.highstreet-technologies.aaa</groupId>
   <artifactId>aaa-authn-api</artifactId>
   <version>0.15.3</version>
   <name>ODL :: aaa :: ${project.artifactId}</name>
