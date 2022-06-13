@@ -7,7 +7,7 @@
  */
 package org.opendaylight.aaa.web.testutils.test;
 
-import static org.junit.Assert.assertEquals;
+import static com.google.common.truth.Truth.assertThat;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -20,6 +20,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.opendaylight.aaa.web.ServletDetails;
 import org.opendaylight.aaa.web.WebContext;
+import org.opendaylight.aaa.web.WebContextBuilder;
+import org.opendaylight.aaa.web.WebContextRegistration;
 import org.opendaylight.aaa.web.WebServer;
 import org.opendaylight.aaa.web.testutils.TestWebClient;
 import org.opendaylight.aaa.web.testutils.WebTestModule;
@@ -40,23 +42,17 @@ public class WebTestModuleTest {
 
     @Test
     public void testServlet() throws ServletException, IOException, InterruptedException, URISyntaxException {
-        var webContext = WebContext.builder()
-            .contextPath("/test1")
-            .addServlet(ServletDetails.builder()
-                .addUrlPattern("/hello")
-                .name("Test")
-                .servlet(new TestServlet())
-                .build())
-            .build();
-        try (var webContextRegistration = webServer.registerWebContext(webContext)) {
-            assertEquals("hello, world", webClient.request("GET", "test1/hello").body());
-            assertEquals("hello, world", webClient.request("GET", "/test1/hello").body());
+        WebContextBuilder webContextBuilder = WebContext.builder().contextPath("/test1");
+        webContextBuilder.addServlet(
+                ServletDetails.builder().addUrlPattern("/hello").name("Test").servlet(new TestServlet()).build());
+        try (WebContextRegistration webContextRegistration = webServer.registerWebContext(webContextBuilder.build())) {
+            assertThat(webClient.request("GET", "test1/hello").body()).isEqualTo("hello, world");
+            assertThat(webClient.request("GET", "/test1/hello").body()).isEqualTo("hello, world");
         }
     }
 
-    static class TestServlet extends HttpServlet {
-        private static final long serialVersionUID = 1L;
-
+    @SuppressWarnings("serial")
+    class TestServlet extends HttpServlet {
         @Override
         protected void doGet(final HttpServletRequest req, final HttpServletResponse response) throws IOException {
             response.getOutputStream().print("hello, world");

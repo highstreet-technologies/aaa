@@ -7,12 +7,13 @@
  */
 package org.opendaylight.aaa.cli.jar;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Comparator;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 
 /**
  * Utilities for Files.
@@ -21,13 +22,29 @@ import java.util.Comparator;
  */
 public final class FilesUtils {
     private FilesUtils() {
-        // Hidden on purpose
     }
 
-    public static void delete(final String directory) throws IOException {
-        final Path path = Paths.get(directory);
-        if (Files.exists(path)) {
-            Files.walk(path).sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
+    public static void delete(String directory) throws IOException {
+        Path path = Paths.get(directory);
+        if (!path.toFile().exists()) {
+            return;
         }
+        Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                file.toFile().delete();
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                dir.toFile().delete();
+                if (exc != null) {
+                    throw exc;
+                }
+                return FileVisitResult.CONTINUE;
+            }
+        });
     }
+
 }

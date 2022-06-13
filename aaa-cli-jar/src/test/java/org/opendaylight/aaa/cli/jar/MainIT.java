@@ -7,8 +7,8 @@
  */
 package org.opendaylight.aaa.cli.jar;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static com.google.common.truth.Truth.assertThat;
+import static com.google.common.truth.Truth.assertWithMessage;
 
 import java.io.File;
 import java.io.IOException;
@@ -58,7 +58,7 @@ public class MainIT {
                 // NO .redirectErrorStream(true)
                 .start();
         process.waitFor();
-        assertEquals(0, process.exitValue());
+        assertThat(process.exitValue()).isEqualTo(0);
     }
 
     private static File findExecutableFatJAR() {
@@ -67,8 +67,8 @@ public class MainIT {
             && name.endsWith(".jar")
             && !name.contains("-javadoc")
             && !name.contains("-sources"));
-        assertNotNull("*jar-with-dependencies.jar files in " + targetDirectory, jarFiles);
-        assertEquals("*jar-with-dependencies.jar files in " + targetDirectory, 1, jarFiles.length);
+        assertWithMessage("*jar-with-dependencies.jar files in " + targetDirectory).that(jarFiles).isNotNull();
+        assertWithMessage("*jar-with-dependencies.jar files in " + targetDirectory).that(jarFiles).hasLength(1);
         return jarFiles[0];
     }
 

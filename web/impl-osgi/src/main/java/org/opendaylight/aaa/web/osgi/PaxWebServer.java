@@ -10,7 +10,6 @@ package org.opendaylight.aaa.web.osgi;
 import static com.google.common.base.Verify.verifyNotNull;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.EventListener;
 import java.util.List;
 import java.util.Map;
@@ -22,9 +21,8 @@ import org.opendaylight.aaa.web.FilterDetails;
 import org.opendaylight.aaa.web.ResourceDetails;
 import org.opendaylight.aaa.web.ServletDetails;
 import org.opendaylight.aaa.web.WebContext;
+import org.opendaylight.aaa.web.WebContextRegistration;
 import org.opendaylight.aaa.web.WebServer;
-import org.opendaylight.yangtools.concepts.AbstractRegistration;
-import org.opendaylight.yangtools.concepts.Registration;
 import org.ops4j.pax.web.service.WebContainer;
 import org.ops4j.pax.web.service.WebContainerDTO;
 import org.osgi.framework.Bundle;
@@ -76,7 +74,7 @@ public final class PaxWebServer implements WebServer {
     }
 
     @Override
-    public Registration registerWebContext(final WebContext webContext) throws ServletException {
+    public WebContextRegistration registerWebContext(final WebContext webContext) throws ServletException {
         return new WebContextImpl(local, webContext);
     }
 
@@ -101,7 +99,7 @@ public final class PaxWebServer implements WebServer {
         LOG.info("Deactivated WebServer instance for {}", bundle);
     }
 
-    private static class WebContextImpl extends AbstractRegistration {
+    private static class WebContextImpl implements WebContextRegistration {
         private final String contextPath;
         private final WebContainer paxWeb;
         private final List<Servlet> registeredServlets = new ArrayList<>();
@@ -115,7 +113,7 @@ public final class PaxWebServer implements WebServer {
             // (it assumes always with session); but other implementation support without.
 
             this.paxWeb = paxWeb;
-            contextPath = webContext.contextPath();
+            this.contextPath = webContext.contextPath();
 
             // NB This is NOT the URL prefix of the context, but the context.id which is
             // used while registering the HttpContext in the OSGi service registry.
@@ -148,7 +146,7 @@ public final class PaxWebServer implements WebServer {
 
             try {
                 for (ResourceDetails resource: webContext.resources()) {
-                    String alias = ensurePrependedSlash(contextPath + ensurePrependedSlash(resource.alias()));
+                    String alias = ensurePrependedSlash(this.contextPath + ensurePrependedSlash(resource.alias()));
                     paxWeb.registerResources(alias, ensurePrependedSlash(resource.name()), osgiHttpContext);
                     registeredResources.add(alias);
                 }
@@ -165,9 +163,9 @@ public final class PaxWebServer implements WebServer {
 
         private void registerFilter(final HttpContext osgiHttpContext, final List<String> urlPatterns,
                 final String name, final Filter filter, final Map<String, String> params,
-                final Boolean asyncSupported) {
-            final String[] absUrlPatterns = absolute(urlPatterns);
-            LOG.info("Registering Filter for aliases {}: {} with async: {}", Arrays.asList(absUrlPatterns),
+                Boolean asyncSupported) {
+            String[] absUrlPatterns = absolute(urlPatterns);
+            LOG.info("Registering Filter for aliases {}: {} with async: {}", absUrlPatterns,
                     filter, asyncSupported);
             paxWeb.registerFilter(filter, absUrlPatterns, new String[] { name }, new MapDictionary<>(params),
                     asyncSupported, osgiHttpContext);
@@ -180,7 +178,7 @@ public final class PaxWebServer implements WebServer {
 
         private void registerServlet(final HttpContext osgiHttpContext, final List<String> urlPatterns,
                 final String name, final Servlet servlet, final Map<String, String> params,
-                final Boolean asyncSupported) throws ServletException {
+                Boolean asyncSupported) throws ServletException {
             int loadOnStartup = 1;
             String[] absUrlPatterns = absolute(urlPatterns);
             LOG.info("Registering Servlet for aliases {}: {} with async: {}", absUrlPatterns,
@@ -196,7 +194,7 @@ public final class PaxWebServer implements WebServer {
         }
 
         @Override
-        protected void removeRegistration() {
+        public void close() {
             // The order is relevant here.. Servlets first, then Filters, Listeners last; this is the inverse of above
             registeredServlets.forEach(paxWeb::unregisterServlet);
             registeredFilters.forEach(paxWeb::unregisterFilter);

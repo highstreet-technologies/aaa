@@ -7,7 +7,7 @@
  */
 package org.opendaylight.aaa.cli.jar;
 
-import static org.junit.Assert.assertEquals;
+import static com.google.common.truth.Truth.assertThat;
 
 import org.junit.Test;
 
@@ -19,33 +19,44 @@ import org.junit.Test;
  * @author Michael Vorburger.ch
  */
 public class MainIntegrationTest {
+
     private static final String DIR = "target/" + MainIntegrationTest.class.getSimpleName();
 
     @Test
     public void testCLI() throws Exception {
         FilesUtils.delete(DIR);
-        assertEquals(0, new Main()
-            .parseArguments(new String[] { "-X", "--dbd", DIR, "-a", "-nu", "newuser", "-p", "firstpass" }));
-        assertEquals(0, new Main()
-            .parseArguments(new String[] { "-X", "--dbd", DIR, "-vu", "newuser", "-p", "firstpass" }));
-        assertEquals(-7, new Main()
-            .parseArguments(new String[] { "-X", "--dbd", DIR, "-vu", "newuser", "-p", "wrongpass" }));
-        assertEquals(0, new Main()
-            .parseArguments(new String[] { "-X", "--dbd", DIR, "-cu", "newuser", "-p", "newpass" }));
-        assertEquals(-7, new Main()
-            .parseArguments(new String[] { "-X", "--dbd", DIR, "-vu", "newuser", "-p", "firstpass" }));
-        assertEquals(0, new Main()
-            .parseArguments(new String[] { "-X", "--dbd", DIR, "-vu", "newuser", "-p", "newpass" }));
-        assertEquals(0, new Main()
-            .parseArguments(new String[] { "-X", "--dbd", DIR, "-du", "newuser" }));
-        assertEquals(-7, new Main()
-            .parseArguments(new String[] { "-X", "--dbd", DIR, "-vu", "newuser", "-p", "newpass" }));
+        assertThat(new Main()
+                .parseArguments(new String[] { "-X", "--dbd", DIR, "-a", "-nu", "newuser", "-p", "firstpass" }))
+                .isEqualTo(0);
+        assertThat(new Main()
+                .parseArguments(new String[] { "-X", "--dbd", DIR, "-vu", "newuser", "-p", "firstpass" }))
+                .isEqualTo(0);
+        assertThat(new Main()
+                .parseArguments(new String[] { "-X", "--dbd", DIR, "-vu", "newuser", "-p", "wrongpass" }))
+                .isEqualTo(-7);
+        assertThat(new Main()
+                .parseArguments(new String[] { "-X", "--dbd", DIR, "-cu", "newuser", "-p", "newpass" }))
+                .isEqualTo(0);
+        assertThat(new Main()
+                .parseArguments(new String[] { "-X", "--dbd", DIR, "-vu", "newuser", "-p", "firstpass" }))
+                .isEqualTo(-7);
+        assertThat(new Main()
+                .parseArguments(new String[] { "-X", "--dbd", DIR, "-vu", "newuser", "-p", "newpass" }))
+                .isEqualTo(0);
+        assertThat(new Main()
+                .parseArguments(new String[] { "-X", "--dbd", DIR, "-du", "newuser" }))
+                .isEqualTo(0);
+        assertThat(new Main()
+                .parseArguments(new String[] { "-X", "--dbd", DIR, "-vu", "newuser", "-p", "newpass" }))
+                .isEqualTo(-7);
     }
 
     @Test
     public void testMismatchUsersPasswords() throws Exception {
-        assertEquals(-3, new Main().parseArguments(new String[] { "-X", "--dbd", DIR,
-            "-vu", "newuser1", "-p", "newpass1",
-            "-vu", "newuser2" /* No 2nd -p */ }));
+        assertThat(new Main()
+                .parseArguments(new String[] { "-X", "--dbd", DIR,
+                    "-vu", "newuser1", "-p", "newpass1",
+                    "-vu", "newuser2" /* No 2nd -p */ }))
+                .isEqualTo(-3);
     }
 }

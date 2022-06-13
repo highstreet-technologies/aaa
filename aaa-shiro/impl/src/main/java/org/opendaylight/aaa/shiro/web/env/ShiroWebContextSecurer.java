@@ -7,9 +7,7 @@
  */
 package org.opendaylight.aaa.shiro.web.env;
 
-import static java.util.Objects.requireNonNull;
-
-import javax.servlet.ServletContextListener;
+import org.apache.shiro.web.env.EnvironmentLoaderListener;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.opendaylight.aaa.shiro.filters.AAAShiroFilter;
 import org.opendaylight.aaa.web.FilterDetails;
@@ -23,10 +21,10 @@ import org.opendaylight.aaa.web.WebContextSecurer;
  * @author Michael Vorburger.ch
  */
 public class ShiroWebContextSecurer implements WebContextSecurer {
-    private final ServletContextListener shiroEnvironmentLoaderListener;
+    private final EnvironmentLoaderListener shiroEnvironmentLoaderListener;
 
-    public ShiroWebContextSecurer(final ServletContextListener shiroEnvironmentLoaderListener) {
-        this.shiroEnvironmentLoaderListener = requireNonNull(shiroEnvironmentLoaderListener);
+    public ShiroWebContextSecurer(final EnvironmentLoaderListener shiroEnvironmentLoaderListener) {
+        this.shiroEnvironmentLoaderListener = shiroEnvironmentLoaderListener;
     }
 
     @Override
