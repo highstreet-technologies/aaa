@@ -13,13 +13,13 @@
     <parent>
       <groupId>org.opendaylight.odlparent</groupId>
       <artifactId>odlparent-lite</artifactId>
-      <version>8.1.1</version>
+      <version>10.0.2</version>
       <relativePath/>
     </parent>
 
     <groupId>org.opendaylight.aaa</groupId>
     <artifactId>aaa-artifacts</artifactId>
-    <version>0.13.2</version>
+    <version>0.15.5</version>
     <name>ODL :: aaa :: ${project.artifactId}</name>
     <packaging>pom</packaging>
 
@@ -89,6 +89,12 @@
 
             <dependency>
                 <groupId>${project.groupId}</groupId>
+                <artifactId>aaa-idm-store-h2</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>${project.groupId}</groupId>
                 <artifactId>aaa-shiro</artifactId>
                 <version>${project.version}</version>
                 <type>xml</type>
@@ -103,6 +109,16 @@
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>aaa-shiro</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>aaa-tokenauthrealm</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>repackaged-shiro</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
@@ -193,6 +209,13 @@
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>odl-aaa-shiro</artifactId>
+                <version>${project.version}</version>
+                <classifier>features</classifier>
+                <type>xml</type>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>odl-apache-shiro</artifactId>
                 <version>${project.version}</version>
                 <classifier>features</classifier>
                 <type>xml</type>

@@ -12,13 +12,13 @@
   <parent>
     <groupId>org.opendaylight.aaa</groupId>
     <artifactId>aaa-parent</artifactId>
-    <version>0.13.2</version>
+    <version>0.15.5</version>
     <relativePath>../../parent</relativePath>
   </parent>
 
   <groupId>org.opendaylight.aaa.web</groupId>
   <artifactId>web-jetty-impl</artifactId>
-  <version>0.13.2</version>
+  <version>0.15.5</version>
   <name>ODL :: aaa :: ${project.artifactId}</name>
   <packaging>bundle</packaging>
 
@@ -43,7 +43,7 @@
       <artifactId>guava</artifactId>
     </dependency>
     <dependency>
-      <groupId>javax.inject</groupId>
+      <groupId>com.guicedee.services</groupId>
       <artifactId>javax.inject</artifactId>
       <optional>true</optional>
     </dependency>

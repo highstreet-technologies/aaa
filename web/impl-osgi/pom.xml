@@ -12,13 +12,13 @@
   <parent>
     <groupId>org.opendaylight.aaa</groupId>
     <artifactId>aaa-parent</artifactId>
-    <version>0.13.2</version>
+    <version>0.15.5</version>
     <relativePath>../../parent</relativePath>
   </parent>
 
   <groupId>org.opendaylight.aaa.web</groupId>
   <artifactId>web-osgi-impl</artifactId>
-  <version>0.13.2</version>
+  <version>0.15.5</version>
   <name>ODL :: aaa :: ${project.artifactId}</name>
   <packaging>bundle</packaging>
 
@@ -37,11 +37,15 @@
     </dependency>
     <dependency>
       <groupId>org.osgi</groupId>
-      <artifactId>org.osgi.core</artifactId>
+      <artifactId>org.osgi.framework</artifactId>
     </dependency>
     <dependency>
       <groupId>org.osgi</groupId>
-      <artifactId>osgi.cmpn</artifactId>
+      <artifactId>org.osgi.service.component</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.osgi</groupId>
+      <artifactId>org.osgi.service.component.annotations</artifactId>
     </dependency>
   </dependencies>
 </project>

@@ -13,20 +13,32 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
     <parent>
         <groupId>org.opendaylight.aaa</groupId>
         <artifactId>aaa-parent</artifactId>
-        <version>0.13.2</version>
+        <version>0.15.5</version>
         <relativePath>../../parent</relativePath>
     </parent>
 
     <groupId>org.opendaylight.aaa</groupId>
     <artifactId>aaa-shiro</artifactId>
-    <version>0.13.2</version>
+    <version>0.15.5</version>
     <name>ODL :: aaa :: ${project.artifactId}</name>
     <packaging>bundle</packaging>
 
     <dependencies>
         <dependency>
-            <groupId>${project.groupId}</groupId>
+            <groupId>org.opendaylight.aaa</groupId>
+            <artifactId>aaa-authn-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.opendaylight.aaa</groupId>
             <artifactId>aaa-shiro-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.opendaylight.aaa</groupId>
+            <artifactId>aaa-tokenauthrealm</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.opendaylight.aaa</groupId>
+            <artifactId>aaa-idm-store-h2</artifactId>
         </dependency>
 
         <!-- jersey client for moon authN -->
@@ -40,14 +52,8 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
             <artifactId>aaa-cert</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.apache.shiro</groupId>
-            <artifactId>shiro-web</artifactId>
-        </dependency>
-        <!-- Enforce newer commons-collections versions -->
-        <dependency>
-            <groupId>commons-collections</groupId>
-            <artifactId>commons-collections</artifactId>
-            <version>3.2.2</version>
+            <groupId>org.opendaylight.aaa</groupId>
+            <artifactId>repackaged-shiro</artifactId>
         </dependency>
 
         <dependency>
@@ -70,13 +76,16 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
         </dependency>
         <dependency>
             <groupId>org.osgi</groupId>
-            <artifactId>osgi.cmpn</artifactId>
+            <artifactId>org.osgi.service.component.annotations</artifactId>
         </dependency>
         <dependency>
-            <groupId>javax.inject</groupId>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.service.http</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.guicedee.services</groupId>
             <artifactId>javax.inject</artifactId>
             <optional>true</optional>
-            <scope>provided</scope>
         </dependency>
 
         <!-- JSON JAXB Stuff -->
@@ -89,10 +98,6 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
         <dependency>
             <groupId>net.sf.ehcache</groupId>
             <artifactId>ehcache</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
         </dependency>
         <dependency>
             <groupId>org.immutables</groupId>
@@ -180,15 +185,12 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
                             org.opendaylight.aaa,
                             org.opendaylight.aaa.shiro,
                             org.opendaylight.aaa.shiro.idm,
-                            org.opendaylight.aaa.shiro.tokenauthrealm,
-                            org.opendaylight.aaa.shiro.tokenauthrealm.auth,
                             org.opendaylight.aaa.shiro,
                             org.opendaylight.aaa.shiro.filters,
                             org.opendaylight.aaa.shiro.realm,
                             <!-- TODO: This is temporary until we can find a better spot for GsonProvider. -->
                             org.opendaylight.aaa.provider,
-                            org.opendaylight.aaa.shiro.web.env,
-                            org.opendaylight.aaa.datastore.h2.*,
+                            org.opendaylight.aaa.shiro.web.env
                         </Export-Package>
                         <Import-Package>
                            !javax.annotation,

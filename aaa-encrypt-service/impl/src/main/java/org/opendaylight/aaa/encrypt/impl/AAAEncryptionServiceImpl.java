@@ -17,7 +17,6 @@ import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.util.Base64;
-import java.util.Random;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
@@ -27,7 +26,6 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
-import javax.xml.bind.DatatypeConverter;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -60,6 +58,7 @@ public class AAAEncryptionServiceImpl implements AAAEncryptionService {
     private static final String DEFAULT_CONFIG_FILE_PATH = "etc" + File.separator + "opendaylight" + File.separator
             + "datastore" + File.separator + "initial" + File.separator + "config" + File.separator
             + "aaa-encrypt-service-config.xml";
+    private static final SecureRandom RANDOM = new SecureRandom();
 
     private final SecretKey key;
     private final IvParameterSpec ivspec;
@@ -76,9 +75,8 @@ public class AAAEncryptionServiceImpl implements AAAEncryptionService {
         if (encrySrvConfig.getEncryptKey() != null && encrySrvConfig.getEncryptKey().isEmpty()) {
             LOG.debug("Set the Encryption service password and encrypt salt");
             String newPwd = RandomStringUtils.random(encrySrvConfig.getPasswordLength(), true, true);
-            final Random random = new SecureRandom();
             byte[] salt = new byte[16];
-            random.nextBytes(salt);
+            RANDOM.nextBytes(salt);
             String encodedSalt = Base64.getEncoder().encodeToString(salt);
             encrySrvConfig = new AaaEncryptServiceConfigBuilder(encrySrvConfig).setEncryptKey(newPwd)
                     .setEncryptSalt(encodedSalt).build();
@@ -106,7 +104,7 @@ public class AAAEncryptionServiceImpl implements AAAEncryptionService {
                 | InvalidKeyException e) {
             LOG.error("Failed to create encrypt cipher.", e);
         }
-        this.encryptCipher = cipher;
+        encryptCipher = cipher;
         cipher = null;
         try {
             cipher = Cipher.getInstance(encrySrvConfig.getCipherTransforms());
@@ -115,7 +113,7 @@ public class AAAEncryptionServiceImpl implements AAAEncryptionService {
                 | InvalidKeyException e) {
             LOG.error("Failed to create decrypt cipher.", e);
         }
-        this.decryptCipher = cipher;
+        decryptCipher = cipher;
     }
 
     @Override
@@ -126,16 +124,17 @@ public class AAAEncryptionServiceImpl implements AAAEncryptionService {
             LOG.warn("Encryption Key is NULL, will not encrypt data.");
             return data;
         }
+
+        final byte[] cryptobytes;
         try {
             synchronized (encryptCipher) {
-                byte[] cryptobytes = encryptCipher.doFinal(data.getBytes(Charset.defaultCharset()));
-                String cryptostring = DatatypeConverter.printBase64Binary(cryptobytes);
-                return cryptostring;
+                cryptobytes = encryptCipher.doFinal(data.getBytes(Charset.defaultCharset()));
             }
         } catch (IllegalBlockSizeException | BadPaddingException e) {
             LOG.error("Failed to encrypt data.", e);
+            return data;
         }
-        return data;
+        return Base64.getEncoder().encodeToString(cryptobytes);
     }
 
     @Override
@@ -152,8 +151,8 @@ public class AAAEncryptionServiceImpl implements AAAEncryptionService {
             }
         } catch (IllegalBlockSizeException | BadPaddingException e) {
             LOG.error("Failed to encrypt data.", e);
+            return data;
         }
-        return data;
     }
 
     @Override
@@ -162,14 +161,16 @@ public class AAAEncryptionServiceImpl implements AAAEncryptionService {
             LOG.warn("String {} was not decrypted.", encryptedData);
             return encryptedData;
         }
+
+        final byte[] cryptobytes = Base64.getDecoder().decode(encryptedData);
+        final byte[] clearbytes;
         try {
-            byte[] cryptobytes = DatatypeConverter.parseBase64Binary(encryptedData);
-            byte[] clearbytes = decryptCipher.doFinal(cryptobytes);
-            return new String(clearbytes, Charset.defaultCharset());
+            clearbytes = decryptCipher.doFinal(cryptobytes);
         } catch (IllegalBlockSizeException | BadPaddingException e) {
             LOG.error("Failed to decrypt encoded data", e);
+            return encryptedData;
         }
-        return encryptedData;
+        return new String(clearbytes, Charset.defaultCharset());
     }
 
     @Override

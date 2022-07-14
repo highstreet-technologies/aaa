@@ -8,15 +8,13 @@
 package org.opendaylight.aaa.shiro.web.env;
 
 import javax.servlet.ServletContext;
-import org.apache.shiro.util.LifecycleUtils;
 import org.apache.shiro.web.env.EnvironmentLoaderListener;
-import org.apache.shiro.web.env.MutableWebEnvironment;
 import org.apache.shiro.web.env.WebEnvironment;
 import org.opendaylight.aaa.api.AuthenticationService;
 import org.opendaylight.aaa.api.TokenStore;
 import org.opendaylight.aaa.api.password.service.PasswordHashService;
 import org.opendaylight.aaa.cert.api.ICertificateManager;
-import org.opendaylight.aaa.shiro.tokenauthrealm.auth.TokenAuthenticators;
+import org.opendaylight.aaa.tokenauthrealm.auth.TokenAuthenticators;
 import org.opendaylight.mdsal.binding.api.DataBroker;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.aaa.app.config.rev170619.ShiroConfiguration;
 import org.slf4j.Logger;
@@ -54,15 +52,8 @@ public class ShiroWebEnvironmentLoaderListener extends EnvironmentLoaderListener
     }
 
     @Override
-    protected WebEnvironment createEnvironment(final ServletContext sc) {
-        MutableWebEnvironment environment = new AAAIniWebEnvironment(shiroConfiguration, dataBroker,
-                certificateManager, authenticationService, tokenAuthenticators, tokenStore, passwordHashService);
-
-        // in newer Shiro version, there is a determineWebEnvironment() which should be
-        // used instead of createEnvironment() but for 1.3.x we just copy/paste from parent and do:
-        environment.setServletContext(sc);
-        customizeEnvironment(environment);
-        LifecycleUtils.init(environment);
-        return environment;
+    protected WebEnvironment determineWebEnvironment(final ServletContext servletContext) {
+        return new AAAIniWebEnvironment(shiroConfiguration, dataBroker, certificateManager, authenticationService,
+            tokenAuthenticators, tokenStore, passwordHashService);
     }
 }
