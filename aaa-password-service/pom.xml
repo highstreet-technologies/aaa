@@ -11,13 +11,13 @@ and is available at http://www.eclipse.org/legal/epl-v10.html INTERNAL
   <parent>
     <groupId>org.opendaylight.odlparent</groupId>
     <artifactId>odlparent-lite</artifactId>
-    <version>12.0.1</version>
+    <version>11.0.3</version>
     <relativePath/>
   </parent>
 
   <groupId>org.opendaylight.aaa</groupId>
   <artifactId>aaa-password-service-aggregator</artifactId>
-  <version>0.17.2-SNAPSHOT</version>
+  <version>0.16.6</version>
   <name>ODL :: aaa :: ${project.artifactId}</name>
   <packaging>pom</packaging>
 

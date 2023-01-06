@@ -32,11 +32,9 @@ public interface WebServer {
     Registration registerWebContext(WebContext webContext) throws ServletException;
 
     /**
-     * Get base URL of this web server, without any contexts.
-     *
-     * <p>
-     * In production, this would likely be HTTPS with a well known hostname and fixed port configured.
-     * For example, in Karaf etc/ configuration file. In tests, this would be typically be HTTP on
+     * Base URL of this web server, without any contexts. In production, this would
+     * likely be HTTPS with a well known hostname and fixed port configured e.g. in
+     * a Karaf etc/ configuration file. In tests, this would be typically be HTTP on
      * localhost and an arbitrarily chosen port.
      *
      * @return base URL, with http[s] prefix and port, NOT ending in slash

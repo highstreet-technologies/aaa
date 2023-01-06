@@ -28,7 +28,6 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import org.eclipse.jdt.annotation.Nullable;
 import org.opendaylight.aaa.filterchain.configuration.CustomFilterAdapterConfiguration;
-import org.opendaylight.aaa.filterchain.configuration.CustomFilterAdapterConstants;
 import org.opendaylight.aaa.filterchain.configuration.CustomFilterAdapterListener;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -91,7 +90,13 @@ public final class CustomFilterAdapterConfigurationImpl implements CustomFilterA
     // Invoked when a Filter OSGi service is added
     @Reference(cardinality = ReferenceCardinality.MULTIPLE,
             policy = ReferencePolicy.DYNAMIC, policyOption = ReferencePolicyOption.GREEDY,
-            target = "(" + CustomFilterAdapterConstants.FILTERCHAIN_FILTER + "=true)")
+            // Needed to exclude any filters that is published for HTTP Whiteboard
+            // FIXME: it would be much better if we had a whitelist property to prevent confusion
+            target = "(!(|"
+                + "(osgi.http.whiteboard.filter.pattern=*)"
+                + "(osgi.http.whiteboard.filter.regex=*)"
+                + "(osgi.http.whiteboard.filter.servlet=*)"
+                + "))")
     public void addFilter(final Filter filter) {
         if (filter == null) {
             return;
