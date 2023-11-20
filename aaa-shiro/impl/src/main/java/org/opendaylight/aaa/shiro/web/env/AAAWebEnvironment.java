@@ -18,6 +18,7 @@ import org.opendaylight.aaa.shiro.realm.KeystoneAuthRealm;
 import org.opendaylight.aaa.shiro.realm.MDSALDynamicAuthorizationFilter;
 import org.opendaylight.aaa.shiro.realm.MdsalRealm;
 import org.opendaylight.aaa.shiro.realm.MoonRealm;
+import org.opendaylight.aaa.shiro.realm.OAuth2Realm;
 import org.opendaylight.aaa.shiro.realm.TokenAuthRealm;
 import org.opendaylight.aaa.tokenauthrealm.auth.TokenAuthenticators;
 import org.opendaylight.aaa.web.servlet.ServletSupport;
@@ -64,6 +65,8 @@ public final class AAAWebEnvironment extends IniWebEnvironment implements AAAShi
                  var mdsalLoad = MdsalRealm.prepareForLoad(passwordHashService, dataBroker);
                  var moonLoad = MoonRealm.prepareForLoad(servletSupport);
                  var tokenAuthLoad = TokenAuthRealm.prepareForLoad(authenticationService, tokenAuthenticators,
+                     tokenStore);
+                var oauthLoad = OAuth2Realm.prepareForLoad(authenticationService,tokenAuthenticators,
                      tokenStore)) {
                 configure();
             }

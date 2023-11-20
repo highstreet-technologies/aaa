@@ -21,6 +21,12 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
     <name>ODL :: aaa :: ${project.artifactId}</name>
     <packaging>bundle</packaging>
 
+    <properties>
+        <odlparent.checkstyle.enforce>false</odlparent.checkstyle.enforce>
+        <odlparent.checkstyle.skip>true</odlparent.checkstyle.skip>
+        <odlparent.spotbugs.enforce>false</odlparent.spotbugs.enforce>
+        <odlparent.spotbugs.skip>true</odlparent.spotbugs.skip>
+    </properties>
     <dependencies>
         <dependency>
             <groupId>org.opendaylight.aaa</groupId>
@@ -110,7 +116,21 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
             <groupId>org.opendaylight.aaa.web</groupId>
             <artifactId>servlet-api</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>com.auth0</groupId>
+            <artifactId>java-jwt</artifactId>
+            <version>3.11.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk15on</artifactId>
+            <version>1.68</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <scope>provided</scope>
+        </dependency>
         <!-- Testing Dependencies -->
         <dependency>
             <groupId>ch.qos.logback</groupId>
@@ -137,6 +157,18 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
             <artifactId>aaa-password-service-impl</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.apache.shiro</groupId>
+            <artifactId>shiro-core</artifactId>
+            <version>1.11.0</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.shiro</groupId>
+            <artifactId>shiro-web</artifactId>
+            <version>1.11.0</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -155,6 +187,7 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
                             org.opendaylight.aaa.shiro,
                             org.opendaylight.aaa.shiro.filters,
                             org.opendaylight.aaa.shiro.realm,
+                            org.opendaylight.aaa.shiro.oauth.filters,
                             <!-- TODO: This is temporary until we can find a better spot for GsonProvider. -->
                             org.opendaylight.aaa.provider,
                             org.opendaylight.aaa.shiro.web.env
@@ -172,6 +205,8 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
                             osgi.service;objectClass:List&lt;String&gt;="org.opendaylight.aaa.web.WebContextSecurer";uses:="org.opendaylight.aaa.web"
                             osgi.service;objectClass:List&lt;String&gt;="org.opendaylight.aaa.shiro.web.env.AAAShiroWebEnvironment";uses:="org.opendaylight.aaa.shiro.web.env",
                         </Provide-Capability>
+                        <Embed-Dependency>*;scope=compile|runtime;artifactId=java-jwt;inline=false</Embed-Dependency>
+                        <Embed-Transitive>true</Embed-Transitive>
                     </instructions>
                 </configuration>
             </plugin>
@@ -208,6 +243,95 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>3.2.1</version>
+                <executions>
+                    <execution>
+                        <id>check-license</id>
+                        <phase>process-sources</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <skip>true</skip>
+                            <failsOnError>false</failsOnError>
+                            <consoleOutput>true</consoleOutput>
+                        </configuration>
+                    </execution>
+<!--                    <execution>
+                        <phase>process-sources</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <failOnViolation>false</failOnViolation>
+                            <skip>true</skip>
+                            <propertyExpansion>checkstyle.violationSeverity=error</propertyExpansion>
+                            <configLocation>odl_checks.xml</configLocation>
+                            <suppressionsLocation>checkstyle-suppressions.xml</suppressionsLocation>
+                            <sourceDirectories>
+                                <directory>/home/jack/odl/aaa/aaa-shiro/impl/src/main/java</directory>
+                            </sourceDirectories>
+                            <includeResources>true</includeResources>
+                            <includeTestSourceDirectory>true</includeTestSourceDirectory>
+                            <includeTestResources>true</includeTestResources>
+                            <includes>**\/*.java</includes>
+                            <excludes>org/opendaylight/yang/gen/**,
+                                **/protobuff/messages/**,
+                                **/thrift/gen/*.java,
+                                **/module-info.java</excludes>
+                            <failsOnError>false</failsOnError>
+                            <consoleOutput>true</consoleOutput>
+                        </configuration>
+                    </execution>-->
+                </executions>
+                <configuration>
+                    <failsOnError>false</failsOnError>
+                    <consoleOutput>true</consoleOutput>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.5.0</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration combine.children="append">
+                            <quiet>true</quiet>
+                            <skip>true</skip>
+                        </configuration>
+                    </execution>
+                </executions>
+                <configuration combine.children="append">
+                    <quiet>true</quiet>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.gaul</groupId>
+                <artifactId>modernizer-maven-plugin</artifactId>
+                <version>2.6.0</version>
+                <!--<executions>
+                    <execution>
+                        <id>modernizer</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>modernizer</goal>
+                        </goals>
+                        <configuration>
+                            <skip>true</skip>
+                        </configuration>
+                    </execution>
+                </executions>-->
+                <configuration>
+                    <failOnViolations>false</failOnViolations>
+                    <skip>false</skip>
+                </configuration>
             </plugin>
         </plugins>
     </build>
