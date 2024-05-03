@@ -7,44 +7,49 @@
  */
 package org.opendaylight.aaa.encrypt.impl;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 
 import java.util.Base64;
 import java.util.Dictionary;
+import java.util.List;
 import java.util.Optional;
 import org.eclipse.jdt.annotation.NonNull;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.opendaylight.mdsal.binding.api.DataBroker;
-import org.opendaylight.mdsal.binding.api.DataListener;
+import org.opendaylight.mdsal.binding.api.DataObjectModification;
+import org.opendaylight.mdsal.binding.api.DataTreeChangeListener;
 import org.opendaylight.mdsal.binding.api.DataTreeIdentifier;
+import org.opendaylight.mdsal.binding.api.DataTreeModification;
 import org.opendaylight.mdsal.binding.api.ReadWriteTransaction;
 import org.opendaylight.mdsal.common.api.CommitInfo;
 import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
 import org.opendaylight.yang.gen.v1.config.aaa.authn.encrypt.service.config.rev160915.AaaEncryptServiceConfig;
 import org.opendaylight.yang.gen.v1.config.aaa.authn.encrypt.service.config.rev160915.EncryptServiceConfig;
-import org.opendaylight.yangtools.concepts.Registration;
+import org.opendaylight.yangtools.concepts.ListenerRegistration;
 import org.opendaylight.yangtools.util.concurrent.FluentFutures;
 import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
 import org.osgi.service.component.ComponentFactory;
 import org.osgi.service.component.ComponentInstance;
 
-@ExtendWith(MockitoExtension.class)
-class OSGiEncryptionServiceConfiguratorTest {
+@RunWith(MockitoJUnitRunner.StrictStubs.class)
+public class OSGiEncryptionServiceConfiguratorTest {
     private static final @NonNull InstanceIdentifier<AaaEncryptServiceConfig> IID =
         InstanceIdentifier.create(AaaEncryptServiceConfig.class);
+
     @Mock
     private DataBroker dataBroker;
     @Mock
@@ -52,13 +57,17 @@ class OSGiEncryptionServiceConfiguratorTest {
     @Mock
     private ComponentInstance<AAAEncryptionServiceImpl> instance;
     @Mock
-    private Registration registration;
+    private ListenerRegistration<?> registration;
     @Mock
     private ReadWriteTransaction transaction;
+    @Mock
+    private DataTreeModification<AaaEncryptServiceConfig> treeModification;
+    @Mock
+    private DataObjectModification<AaaEncryptServiceConfig> objectModification;
     @Captor
     private ArgumentCaptor<DataTreeIdentifier<AaaEncryptServiceConfig>> treeIdCaptor;
     @Captor
-    private ArgumentCaptor<DataListener<AaaEncryptServiceConfig>> listenerCaptor;
+    private ArgumentCaptor<DataTreeChangeListener<AaaEncryptServiceConfig>> listenerCaptor;
     @Captor
     private ArgumentCaptor<AaaEncryptServiceConfig> configCaptor;
     @Captor
@@ -66,24 +75,25 @@ class OSGiEncryptionServiceConfiguratorTest {
 
     private OSGiEncryptionServiceConfigurator configurator;
 
-    @BeforeEach
-    void before() {
-        doReturn(registration).when(dataBroker).registerDataListener(treeIdCaptor.capture(), listenerCaptor.capture());
+    @Before
+    public void before() {
+        doReturn(registration).when(dataBroker).registerDataTreeChangeListener(treeIdCaptor.capture(),
+            listenerCaptor.capture());
 
         configurator = new OSGiEncryptionServiceConfigurator(dataBroker, factory);
 
-        assertEquals(DataTreeIdentifier.of(LogicalDatastoreType.CONFIGURATION, IID), treeIdCaptor.getValue());
+        assertEquals(DataTreeIdentifier.create(LogicalDatastoreType.CONFIGURATION, IID), treeIdCaptor.getValue());
         assertSame(configurator, listenerCaptor.getValue());
     }
 
     @Test
-    void testImmediateDeactivate() {
+    public void testImmediateDeactivate() {
         doNothing().when(registration).close();
         configurator.deactivate();
     }
 
     @Test
-    void testEmptyDatastore() {
+    public void testEmptyDatastore() {
         // Config datastore write is expected: capture what gets written
         doReturn(transaction).when(dataBroker).newReadWriteTransaction();
         doReturn(FluentFutures.immediateFluentFuture(Optional.empty())).when(transaction)
@@ -91,7 +101,7 @@ class OSGiEncryptionServiceConfiguratorTest {
         doNothing().when(transaction).put(eq(LogicalDatastoreType.CONFIGURATION), eq(IID), configCaptor.capture());
         doReturn(CommitInfo.emptyFluentFuture()).when(transaction).commit();
 
-        configurator.dataChangedTo(null);
+        configurator.onInitialData();
 
         final var config = configCaptor.getValue();
         assertEquals("AES/CBC/PKCS5Padding", config.getCipherTransforms());
@@ -109,14 +119,19 @@ class OSGiEncryptionServiceConfiguratorTest {
         assertEquals(12, key.length());
 
         // Now we circle around are report that config. We expect the factory to be called
+        doReturn(config).when(objectModification).getDataAfter();
+        doReturn(objectModification).when(treeModification).getRootNode();
         doReturn(instance).when(factory).newInstance(propertiesCaptor.capture());
 
-        configurator.dataChangedTo(config);
+        configurator.onDataTreeChanged(List.of(treeModification));
 
         final var props = propertiesCaptor.getValue();
         assertNotNull(props);
         assertEquals(1, props.size());
-        final var serviceConfig = assertInstanceOf(EncryptServiceConfig.class, props.elements().nextElement());
+        final var configObj = props.elements().nextElement();
+        assertNotNull(configObj);
+        assertThat(configObj, instanceOf(EncryptServiceConfig.class));
+        final var serviceConfig = (EncryptServiceConfig) configObj;
         assertArrayEquals(salt, serviceConfig.getEncryptSalt());
         assertEquals(key, serviceConfig.getEncryptKey());
 

@@ -12,13 +12,13 @@
     <parent>
         <groupId>org.opendaylight.odlparent</groupId>
         <artifactId>single-feature-parent</artifactId>
-        <version>13.0.11</version>
+        <version>13.0.10</version>
         <relativePath/>
     </parent>
 
     <groupId>org.opendaylight.aaa</groupId>
     <artifactId>odl-aaa-cert</artifactId>
-    <version>0.19.4-SNAPSHOT</version>
+    <version>0.18.4</version>
     <packaging>feature</packaging>
 
     <name>ODL :: aaa :: ${project.artifactId}</name>
@@ -27,7 +27,7 @@
         <dependency>
             <groupId>org.opendaylight.controller</groupId>
             <artifactId>odl-mdsal-broker</artifactId>
-            <version>9.0.2</version>
+            <version>8.0.4</version>
             <type>xml</type>
             <classifier>features</classifier>
         </dependency>

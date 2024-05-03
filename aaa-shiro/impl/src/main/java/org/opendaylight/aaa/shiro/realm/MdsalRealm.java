@@ -10,10 +10,13 @@ package org.opendaylight.aaa.shiro.realm;
 import static com.google.common.base.Verify.verifyNotNull;
 import static java.util.Objects.requireNonNull;
 
+import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
@@ -29,10 +32,18 @@ import org.opendaylight.aaa.api.shiro.principal.ODLPrincipal;
 import org.opendaylight.aaa.shiro.principal.ODLPrincipalImpl;
 import org.opendaylight.aaa.shiro.realm.util.TokenUtils;
 import org.opendaylight.aaa.shiro.realm.util.http.header.HeaderUtils;
+import org.opendaylight.mdsal.binding.api.ClusteredDataTreeChangeListener;
 import org.opendaylight.mdsal.binding.api.DataBroker;
 import org.opendaylight.mdsal.binding.api.DataTreeIdentifier;
+import org.opendaylight.mdsal.binding.api.DataTreeModification;
+import org.opendaylight.mdsal.binding.api.ReadTransaction;
 import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.aaa.rev161214.Authentication;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.aaa.rev161214.Grant;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.aaa.rev161214.authentication.Grants;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.aaa.rev161214.authentication.Roles;
+import org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.aaa.rev161214.authentication.Users;
+import org.opendaylight.yangtools.concepts.ListenerRegistration;
 import org.opendaylight.yangtools.concepts.Registration;
 import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
 import org.slf4j.Logger;
@@ -47,14 +58,14 @@ public class MdsalRealm extends AuthorizingRealm implements Destroyable {
     /**
      * InstanceIdentifier for the authentication container.
      */
-    private static final DataTreeIdentifier<Authentication> AUTH_TREE_ID = DataTreeIdentifier.of(
+    private static final DataTreeIdentifier<Authentication> AUTH_TREE_ID = DataTreeIdentifier.create(
             LogicalDatastoreType.CONFIGURATION, InstanceIdentifier.create(Authentication.class));
 
     private static final ThreadLocal<PasswordHashService> PASSWORD_HASH_SERVICE_TL = new ThreadLocal<>();
     private static final ThreadLocal<DataBroker> DATABROKER_TL = new ThreadLocal<>();
 
     private final PasswordHashService passwordHashService;
-    private final Registration reg;
+    private final ListenerRegistration<?> reg;
 
     private volatile ListenableFuture<Optional<Authentication>> authentication;
 
@@ -69,11 +80,12 @@ public class MdsalRealm extends AuthorizingRealm implements Destroyable {
     public MdsalRealm(final PasswordHashService passwordHashService, final DataBroker dataBroker) {
         this.passwordHashService = requireNonNull(passwordHashService);
 
-        try (var tx = dataBroker.newReadOnlyTransaction()) {
-            authentication = tx.read(AUTH_TREE_ID.datastore(), AUTH_TREE_ID.path());
+        try (ReadTransaction tx = dataBroker.newReadOnlyTransaction()) {
+            authentication = tx.read(AUTH_TREE_ID.getDatastoreType(), AUTH_TREE_ID.getRootIdentifier());
         }
 
-        reg = dataBroker.registerDataListener(AUTH_TREE_ID, this::onAuthenticationChanged);
+        reg = dataBroker.registerDataTreeChangeListener(AUTH_TREE_ID,
+            (ClusteredDataTreeChangeListener<Authentication>) this::onAuthenticationChanged);
 
         LOG.info("MdsalRealm created");
     }
@@ -88,24 +100,29 @@ public class MdsalRealm extends AuthorizingRealm implements Destroyable {
         };
     }
 
-    private void onAuthenticationChanged(final Authentication data) {
-        LOG.debug("Updating authentication information to {}", data);
-        authentication = Futures.immediateFuture(Optional.ofNullable(data));
+    private void onAuthenticationChanged(final Collection<DataTreeModification<Authentication>> changes) {
+        final Authentication newVal = Iterables.getLast(changes).getRootNode().getDataAfter();
+        LOG.debug("Updating authentication information to {}", newVal);
+        authentication = Futures.immediateFuture(Optional.ofNullable(newVal));
     }
 
     @Override
     protected AuthorizationInfo doGetAuthorizationInfo(final PrincipalCollection principalCollection) {
         // the final set or roles to return to the caller;  empty to start
-        final var authRoles = new HashSet<String>();
-        final var odlPrincipal = (ODLPrincipal) principalCollection.getPrimaryPrincipal();
-        getAuthenticationContainer().ifPresent(auth -> {
+        final Set<String> authRoles = new HashSet<>();
+        final ODLPrincipal odlPrincipal = (ODLPrincipal)principalCollection.getPrimaryPrincipal();
+        final Optional<Authentication> opt = getAuthenticationContainer();
+        if (opt.isPresent()) {
+            final Authentication auth = opt.orElseThrow();
+
             // iterate through and determine the appropriate roles based on the programmed grants
-            final var grants = auth.getGrants();
-            for (var grant : grants.nonnullGrants().values()) {
+            final Grants grants = auth.getGrants();
+            for (Grant grant : grants.nonnullGrants().values()) {
                 if (grant.getUserid().equals(odlPrincipal.getUserId())) {
-                    final var roles = auth.getRoles();
+                    final Roles roles = auth.getRoles();
                     if (roles != null) {
-                        for (var role : roles.nonnullRoles().values()) {
+                        for (org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.aaa.rev161214
+                                .authentication.roles.Roles role : roles.nonnullRoles().values()) {
                             if (role.getRoleid().equals(grant.getRoleid())) {
                                 authRoles.add(role.getRoleid());
                             }
@@ -113,7 +130,7 @@ public class MdsalRealm extends AuthorizingRealm implements Destroyable {
                     }
                 }
             }
-        });
+        }
         return new SimpleAuthorizationInfo(authRoles);
     }
 
@@ -134,12 +151,14 @@ public class MdsalRealm extends AuthorizingRealm implements Destroyable {
     @Override
     protected AuthenticationInfo doGetAuthenticationInfo(final AuthenticationToken authenticationToken)
             throws AuthenticationException {
-        final var username = TokenUtils.extractUsername(authenticationToken);
-        final var opt = getAuthenticationContainer();
+
+        final String username = TokenUtils.extractUsername(authenticationToken);
+        final Optional<Authentication> opt = getAuthenticationContainer();
         if (opt.isPresent()) {
-            final var auth = opt.orElseThrow();
-            final var users = auth.getUsers();
-            for (var u : users.nonnullUsers().values()) {
+            final Authentication auth = opt.orElseThrow();
+            final Users users = auth.getUsers();
+            for (org.opendaylight.yang.gen.v1.urn.opendaylight.params.xml.ns.yang.aaa.rev161214.authentication.users
+                    .Users u : users.nonnullUsers().values()) {
                 final String inputUsername = HeaderUtils.extractUsername(username);
                 final String domainId = HeaderUtils.extractDomain(username);
                 final String inputUserId = String.format("%s@%s", inputUsername, domainId);
@@ -150,9 +169,9 @@ public class MdsalRealm extends AuthorizingRealm implements Destroyable {
                 if (userEnabled && u.getUserid().equals(inputUserId)) {
                     final String inputPassword = TokenUtils.extractPassword(authenticationToken);
                     if (passwordHashService.passwordsMatch(inputPassword, u.getPassword(), u.getSalt())) {
-                        return new SimpleAuthenticationInfo(
-                            ODLPrincipalImpl.createODLPrincipal(inputUsername, domainId, inputUserId), inputPassword,
-                            getName());
+                        final ODLPrincipal odlPrincipal = ODLPrincipalImpl
+                                .createODLPrincipal(inputUsername, domainId, inputUserId);
+                        return new SimpleAuthenticationInfo(odlPrincipal, inputPassword, getName());
                     }
                 }
             }

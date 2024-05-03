@@ -11,13 +11,13 @@
   <parent>
     <groupId>org.opendaylight.odlparent</groupId>
     <artifactId>odlparent-lite</artifactId>
-    <version>13.0.11</version>
+    <version>13.0.10</version>
     <relativePath/>
   </parent>
 
   <groupId>org.opendaylight.aaa</groupId>
   <artifactId>aaa.project</artifactId>
-  <version>0.19.4-SNAPSHOT</version>
+  <version>0.18.4</version>
   <packaging>pom</packaging>
   <name>aaa</name> <!-- Used by Sonar to set project name -->
 

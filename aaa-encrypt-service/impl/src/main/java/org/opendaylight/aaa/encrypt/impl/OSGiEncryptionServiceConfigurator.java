@@ -10,11 +10,13 @@ package org.opendaylight.aaa.encrypt.impl;
 import static java.util.Objects.requireNonNull;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Iterables;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.MoreExecutors;
 import java.security.SecureRandom;
 import java.util.Base64;
+import java.util.Collection;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -22,9 +24,10 @@ import org.checkerframework.checker.lock.qual.GuardedBy;
 import org.checkerframework.checker.lock.qual.Holding;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
+import org.opendaylight.mdsal.binding.api.ClusteredDataTreeChangeListener;
 import org.opendaylight.mdsal.binding.api.DataBroker;
-import org.opendaylight.mdsal.binding.api.DataListener;
 import org.opendaylight.mdsal.binding.api.DataTreeIdentifier;
+import org.opendaylight.mdsal.binding.api.DataTreeModification;
 import org.opendaylight.mdsal.common.api.CommitInfo;
 import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
 import org.opendaylight.odlparent.logging.markers.Markers;
@@ -33,7 +36,6 @@ import org.opendaylight.yang.gen.v1.config.aaa.authn.encrypt.service.config.rev1
 import org.opendaylight.yangtools.concepts.Registration;
 import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
 import org.osgi.framework.FrameworkUtil;
-import org.osgi.service.component.ComponentException;
 import org.osgi.service.component.ComponentFactory;
 import org.osgi.service.component.ComponentInstance;
 import org.osgi.service.component.annotations.Activate;
@@ -50,11 +52,12 @@ import org.slf4j.LoggerFactory;
  * <p>
  * We primarily listen to the configuration being present. Whenever the salt is missing or the password does not match
  * the required length, we generate them and persist them. This mode of operation means we potentially have a loop, i.e.
- * our touching the datastore will trigger again {@link #dataChangedTo(AaaEncryptServiceConfig)}, which will re-evaluate
- * the conditions and we try again.
+ * our touching the datastore will trigger again {@link #onDataTreeChanged(Collection)}, which will re-evaluate the
+ * conditions and we try again.
  */
 @Component(service = { })
-public final class OSGiEncryptionServiceConfigurator implements DataListener<AaaEncryptServiceConfig> {
+public final class OSGiEncryptionServiceConfigurator
+        implements ClusteredDataTreeChangeListener<AaaEncryptServiceConfig> {
     private static final Logger LOG = LoggerFactory.getLogger(OSGiEncryptionServiceConfigurator.class);
     private static final SecureRandom RANDOM = new SecureRandom();
     private static final @NonNull AaaEncryptServiceConfig DEFAULT_CONFIG = new AaaEncryptServiceConfigBuilder()
@@ -83,8 +86,8 @@ public final class OSGiEncryptionServiceConfigurator implements DataListener<Aaa
             final ComponentFactory<AAAEncryptionServiceImpl> factory) {
         this.dataBroker = requireNonNull(dataBroker);
         this.factory = requireNonNull(factory);
-        reg = dataBroker.registerDataListener(
-            DataTreeIdentifier.of(LogicalDatastoreType.CONFIGURATION,
+        reg = dataBroker.registerDataTreeChangeListener(
+            DataTreeIdentifier.create(LogicalDatastoreType.CONFIGURATION,
                 InstanceIdentifier.create(AaaEncryptServiceConfig.class)),
             this);
         LOG.debug("AAA Encryption Service configurator started");
@@ -99,15 +102,21 @@ public final class OSGiEncryptionServiceConfigurator implements DataListener<Aaa
     }
 
     @Override
-    public void dataChangedTo(final AaaEncryptServiceConfig data) {
+    public void onDataTreeChanged(final Collection<DataTreeModification<AaaEncryptServiceConfig>> changes) {
         // Acquire the last reported configuration and check if it needs to have salt/password generated.
-        if (data == null || needKey(data) || needSalt(data)) {
+        final var dsConfig = Iterables.getLast(changes).getRootNode().getDataAfter();
+        if (dsConfig == null || needKey(dsConfig) || needSalt(dsConfig)) {
             // Generate salt/key as needed and persist it -- causing us to be re-invoked later.
-            updateDatastore(data);
+            updateDatastore(dsConfig);
         } else {
             // Configuration is self-consistent, proceed to activate an instance based on it
-            updateInstance(data);
+            updateInstance(dsConfig);
         }
+    }
+
+    @Override
+    public void onInitialData() {
+        updateDatastore(null);
     }
 
     @VisibleForTesting
@@ -197,14 +206,8 @@ public final class OSGiEncryptionServiceConfigurator implements DataListener<Aaa
         }
 
         disableInstance();
-        try {
-            instance = factory.newInstance(FrameworkUtil.asDictionary(
-                AAAEncryptionServiceImpl.props(new EncryptServiceConfigImpl(newConfig))));
-        } catch (ComponentException e) {
-            LOG.error("Failed to start Encryption Service", e);
-            return;
-        }
-
+        instance = factory.newInstance(FrameworkUtil.asDictionary(
+            AAAEncryptionServiceImpl.props(new EncryptServiceConfigImpl(newConfig))));
         current = newConfig;
         LOG.info("Encryption Service enabled");
     }

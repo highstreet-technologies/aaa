@@ -13,7 +13,7 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
     <parent>
         <groupId>org.opendaylight.aaa</groupId>
         <artifactId>aaa-parent</artifactId>
-        <version>0.19.4-SNAPSHOT</version>
+        <version>0.18.4</version>
         <relativePath>../../parent</relativePath>
     </parent>
 
@@ -22,11 +22,6 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
     <packaging>bundle</packaging>
 
     <dependencies>
-        <dependency>
-            <groupId>com.github.spotbugs</groupId>
-            <artifactId>spotbugs-annotations</artifactId>
-            <optional>true</optional>
-        </dependency>
         <dependency>
             <groupId>org.opendaylight.aaa</groupId>
             <artifactId>aaa-authn-api</artifactId>

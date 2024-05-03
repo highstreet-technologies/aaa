@@ -5,11 +5,23 @@
   <parent>
     <groupId>org.opendaylight.aaa</groupId>
     <artifactId>aaa-parent</artifactId>
-    <version>0.19.4-SNAPSHOT</version>
+    <version>0.18.4</version>
     <relativePath>../../parent</relativePath>
   </parent>
 
+  <groupId>org.opendaylight.aaa</groupId>
   <artifactId>aaa-encrypt-service</artifactId>
   <name>ODL :: aaa :: ${project.artifactId}</name>
   <packaging>bundle</packaging>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcpkix-jdk18on</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcprov-jdk18on</artifactId>
+    </dependency>
+  </dependencies>
 </project>

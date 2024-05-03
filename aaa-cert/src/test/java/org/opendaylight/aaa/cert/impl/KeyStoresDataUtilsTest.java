@@ -10,10 +10,11 @@ package org.opendaylight.aaa.cert.impl;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 
 import java.io.File;
-import java.nio.charset.Charset;
 import java.security.Security;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,7 +23,6 @@ import java.util.Optional;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.opendaylight.aaa.encrypt.AAAEncryptionService;
 import org.opendaylight.mdsal.binding.api.DataBroker;
@@ -48,6 +48,7 @@ public class KeyStoresDataUtilsTest {
         Security.addProvider(new BouncyCastleProvider());
     }
 
+    private static final AAAEncryptionService AAA_ENCRYPTION_SERVICE = mock(AAAEncryptionService.class);
     private static final byte[] ENCRYPTED_BYTE = new byte[] { 1, 2, 3 };
     private static final String ALIAS = "fooTest";
     private static final String BUNDLE_NAME = "opendaylight";
@@ -60,17 +61,10 @@ public class KeyStoresDataUtilsTest {
     private static final String TRUST_NAME = "trustTest.jks";
     private static final String TEST_PATH = "target" + File.separator + "test" + File.separator;
 
-    @Mock
-    private AAAEncryptionService encryptionService;
-    @Mock
-    private DataBroker dataBroker;
-    @Mock
-    private WriteTransaction wtx;
-    @Mock
-    private ReadTransaction rtx;
+    private final DataBroker dataBroker = mock(DataBroker.class);
 
     @Test
-    public void keyStoresDataUtilsTest() throws Exception {
+    public void keyStoresDataUtilsTest() {
         // Test vars setup
         final OdlKeystore odlKeystore = new OdlKeystoreBuilder().setAlias(ALIAS).setDname(D_NAME).setName(ODL_NAME)
                 .setStorePassword(PASSWORD).setValidity(KeyStoreConstant.DEFAULT_VALIDITY)
@@ -87,21 +81,22 @@ public class KeyStoresDataUtilsTest {
                 .setBundleName(BUNDLE_NAME).build();
 
         final ODLKeyTool odlKeyTool = new ODLKeyTool(TEST_PATH);
-        final KeyStoresDataUtils keyStoresDataUtils = new KeyStoresDataUtils(encryptionService);
+        final KeyStoresDataUtils keyStoresDataUtils = new KeyStoresDataUtils(AAA_ENCRYPTION_SERVICE);
 
         // Mock setup
+        final WriteTransaction wtx = mock(WriteTransaction.class);
         doReturn(CommitInfo.emptyFluentFuture()).when(wtx).commit();
         doReturn(wtx).when(dataBroker).newWriteOnlyTransaction();
 
+        final ReadTransaction rtx = mock(ReadTransaction.class);
         doReturn(FluentFutures.immediateFluentFuture(Optional.of(sslData))).when(rtx).read(
             any(LogicalDatastoreType.class), any(InstanceIdentifier.class));
         doReturn(rtx).when(dataBroker).newReadOnlyTransaction();
 
-        doReturn(ENCRYPTED_STRING.getBytes(Charset.defaultCharset())).when(encryptionService).encrypt(any());
-        doReturn(PASSWORD.getBytes(Charset.defaultCharset())).when(encryptionService).decrypt(any());
+        doReturn(ENCRYPTED_STRING).when(AAA_ENCRYPTION_SERVICE).encrypt(isA(String.class));
 
         // getKeystoresIid
-        InstanceIdentifier<?> instanceIdentifierResult = KeyStoresDataUtils.getKeystoresIid();
+        InstanceIdentifier instanceIdentifierResult = KeyStoresDataUtils.getKeystoresIid();
         assertNotNull(instanceIdentifierResult);
 
         // getSslIid()

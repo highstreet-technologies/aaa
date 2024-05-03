@@ -10,13 +10,17 @@ package org.opendaylight.aaa.impl.password.service;
 import static java.util.Objects.requireNonNull;
 
 import com.google.common.annotations.Beta;
+import com.google.common.collect.Iterables;
+import java.util.Collection;
+import org.checkerframework.checker.lock.qual.Holding;
+import org.opendaylight.mdsal.binding.api.ClusteredDataTreeChangeListener;
 import org.opendaylight.mdsal.binding.api.DataBroker;
-import org.opendaylight.mdsal.binding.api.DataListener;
 import org.opendaylight.mdsal.binding.api.DataTreeIdentifier;
+import org.opendaylight.mdsal.binding.api.DataTreeModification;
 import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.aaa.password.service.config.rev170619.PasswordServiceConfig;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.aaa.password.service.config.rev170619.PasswordServiceConfigBuilder;
-import org.opendaylight.yangtools.concepts.Registration;
+import org.opendaylight.yangtools.concepts.ListenerRegistration;
 import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
 import org.osgi.service.component.ComponentFactory;
 import org.osgi.service.component.ComponentInstance;
@@ -29,11 +33,12 @@ import org.slf4j.LoggerFactory;
 
 @Beta
 @Component(service = { })
-public final class OSGiPasswordServiceConfigBootstrap implements DataListener<PasswordServiceConfig> {
+public final class OSGiPasswordServiceConfigBootstrap
+        implements ClusteredDataTreeChangeListener<PasswordServiceConfig> {
     private static final Logger LOG = LoggerFactory.getLogger(OSGiPasswordServiceConfigBootstrap.class);
 
     private final ComponentFactory<OSGiPasswordServiceConfig> configFactory;
-    private Registration registration;
+    private ListenerRegistration<?> registration;
     private ComponentInstance<?> instance;
 
     @Activate
@@ -41,8 +46,8 @@ public final class OSGiPasswordServiceConfigBootstrap implements DataListener<Pa
             @Reference(target = "(component.factory=" + OSGiPasswordServiceConfig.FACTORY_NAME + ")")
             final ComponentFactory<OSGiPasswordServiceConfig> configFactory) {
         this.configFactory  = requireNonNull(configFactory);
-        registration = dataBroker.registerDataListener(
-            DataTreeIdentifier.of(LogicalDatastoreType.CONFIGURATION,
+        registration = dataBroker.registerDataTreeChangeListener(
+            DataTreeIdentifier.create(LogicalDatastoreType.CONFIGURATION,
                 InstanceIdentifier.create(PasswordServiceConfig.class)), this);
         LOG.info("Listening for password service configuration");
     }
@@ -59,11 +64,21 @@ public final class OSGiPasswordServiceConfigBootstrap implements DataListener<Pa
     }
 
     @Override
-    public synchronized void dataChangedTo(final PasswordServiceConfig data) {
+    public synchronized void onInitialData() {
+        updateInstance(null);
+    }
+
+    @Override
+    public synchronized void onDataTreeChanged(final Collection<DataTreeModification<PasswordServiceConfig>> changes) {
         // FIXME: at this point we need to populate default values -- from the XML file
+        updateInstance(Iterables.getLast(changes).getRootNode().getDataAfter());
+    }
+
+    @Holding("this")
+    private void updateInstance(final PasswordServiceConfig config) {
         if (registration != null) {
             final var newInstance = configFactory.newInstance(
-                OSGiPasswordServiceConfig.props(data != null ? data : new PasswordServiceConfigBuilder().build()));
+                OSGiPasswordServiceConfig.props(config != null ? config : new PasswordServiceConfigBuilder().build()));
             if (instance != null) {
                 instance.dispose();
             }
