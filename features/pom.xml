@@ -11,13 +11,13 @@
     <parent>
         <groupId>org.opendaylight.odlparent</groupId>
         <artifactId>odlparent-lite</artifactId>
-        <version>13.0.11</version>
+        <version>13.1.4</version>
         <relativePath/>
     </parent>
 
     <groupId>org.opendaylight.aaa</groupId>
     <artifactId>features-aaa-aggregator</artifactId>
-    <version>0.19.4-SNAPSHOT</version>
+    <version>0.19.6</version>
     <name>ODL :: aaa :: ${project.artifactId}</name>
     <packaging>pom</packaging>
 

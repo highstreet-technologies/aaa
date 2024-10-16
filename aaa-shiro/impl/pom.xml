@@ -13,7 +13,7 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
     <parent>
         <groupId>org.opendaylight.aaa</groupId>
         <artifactId>aaa-parent</artifactId>
-        <version>0.19.4-SNAPSHOT</version>
+        <version>0.19.6</version>
         <relativePath>../../parent</relativePath>
     </parent>
 
@@ -90,15 +90,6 @@ and is available at http://www.eclipse.org/legal/epl-v10.html
             <optional>true</optional>
         </dependency>
 
-        <dependency>
-            <groupId>net.sf.ehcache</groupId>
-            <artifactId>ehcache</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.immutables</groupId>
-            <artifactId>value</artifactId>
-            <classifier>annotations</classifier>
-        </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
