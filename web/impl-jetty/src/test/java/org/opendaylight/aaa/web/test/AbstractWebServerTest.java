@@ -7,17 +7,13 @@
  */
 package org.opendaylight.aaa.web.test;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
-import com.google.common.io.CharStreams;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URL;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import javax.servlet.ServletException;
 import org.junit.Test;
 import org.opendaylight.aaa.web.FilterDetails;
 import org.opendaylight.aaa.web.ServletDetails;
@@ -34,8 +30,9 @@ public abstract class AbstractWebServerTest {
     protected abstract WebServer getWebServer();
 
     @Test
-    public void testAddAfterStart() throws ServletException, IOException {
+    public void testAddAfterStart() throws Exception {
         var webContext = WebContext.builder()
+            .name("test")
             .contextPath("/test1")
             .addServlet(ServletDetails.builder().addUrlPattern("/*").name("Test").servlet(new TestServlet()).build())
             .build();
@@ -45,7 +42,7 @@ public abstract class AbstractWebServerTest {
     }
 
     @Test
-    public void testAddAfterStartWithoutSlashOnServlet() throws ServletException, IOException {
+    public void testAddAfterStartWithoutSlashOnServlet() throws Exception {
         // NB subtle difference to testAddAfterStart() test: addUrlPattern("*") instead of /* with slash!
         var builder = WebContext.builder()
             .contextPath("/test1");
@@ -57,6 +54,7 @@ public abstract class AbstractWebServerTest {
     public void testAddFilter() throws Exception {
         var testFilter = new TestFilter();
         var webContext = WebContext.builder()
+            .name("testFilter")
             .contextPath("/testingFilters")
             .putContextParam("testParam1", "avalue")
             .addFilter(FilterDetails.builder().addUrlPattern("/*").name("Test").filter(testFilter).build())
@@ -81,6 +79,7 @@ public abstract class AbstractWebServerTest {
     public void testRegisterListener() throws Exception {
         var testListener = new TestListener();
         var webContext = WebContext.builder()
+            .name("testListen")
             .contextPath("/testingListener")
             .addListener(testListener)
             .build();
@@ -91,13 +90,9 @@ public abstract class AbstractWebServerTest {
         assertFalse(testListener.isInitialized);
     }
 
-    static void checkTestServlet(final String urlPrefix) throws IOException {
-        try (var inputStream = new URL(urlPrefix + "/something").openConnection().getInputStream()) {
-            // The hard-coded ASCII here is strictly speaking wrong of course
-            // (should interpret header from reply), but good enough for a test.
-            try (var reader = new InputStreamReader(inputStream, StandardCharsets.US_ASCII)) {
-                assertEquals("hello, world\r\n", CharStreams.toString(reader));
-            }
+    static void checkTestServlet(final String urlPrefix) throws Exception {
+        try (var inputStream = new URI(urlPrefix + "/something").toURL().openConnection().getInputStream()) {
+            assertArrayEquals("hello, world\r\n".getBytes(StandardCharsets.US_ASCII), inputStream.readAllBytes());
         }
     }
 }

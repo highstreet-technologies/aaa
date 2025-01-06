@@ -28,8 +28,8 @@ import org.opendaylight.mdsal.binding.api.DataTreeIdentifier;
 import org.opendaylight.mdsal.common.api.CommitInfo;
 import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
 import org.opendaylight.odlparent.logging.markers.Markers;
-import org.opendaylight.yang.gen.v1.config.aaa.authn.encrypt.service.config.rev160915.AaaEncryptServiceConfig;
-import org.opendaylight.yang.gen.v1.config.aaa.authn.encrypt.service.config.rev160915.AaaEncryptServiceConfigBuilder;
+import org.opendaylight.yang.gen.v1.config.aaa.authn.encrypt.service.config.rev240202.AaaEncryptServiceConfig;
+import org.opendaylight.yang.gen.v1.config.aaa.authn.encrypt.service.config.rev240202.AaaEncryptServiceConfigBuilder;
 import org.opendaylight.yangtools.concepts.Registration;
 import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
 import org.osgi.framework.FrameworkUtil;
@@ -47,11 +47,10 @@ import org.slf4j.LoggerFactory;
  * Intermediate component dealing with establishing initial configuration for {@link AAAEncryptionServiceImpl}. In
  * particular it deals with generating and persisting of encryption salt and encryption password.
  *
- * <p>
- * We primarily listen to the configuration being present. Whenever the salt is missing or the password does not match
- * the required length, we generate them and persist them. This mode of operation means we potentially have a loop, i.e.
- * our touching the datastore will trigger again {@link #dataChangedTo(AaaEncryptServiceConfig)}, which will re-evaluate
- * the conditions and we try again.
+ * <p>We primarily listen to the configuration being present. Whenever the salt is missing or the password does not
+ * match the required length, we generate them and persist them. This mode of operation means we potentially have
+ * a loop, i.e. our touching the datastore will trigger again {@link #dataChangedTo(AaaEncryptServiceConfig)}, which
+ * will re-evaluate the conditions and we try again.
  */
 @Component(service = { })
 public final class OSGiEncryptionServiceConfigurator implements DataListener<AaaEncryptServiceConfig> {
@@ -63,8 +62,9 @@ public final class OSGiEncryptionServiceConfigurator implements DataListener<Aaa
         .setEncryptType("AES")
         .setEncryptIterationCount(32768)
         .setEncryptKeyLength(128)
-        .setCipherTransforms("AES/CBC/PKCS5Padding")
+        .setCipherTransforms("AES/GCM/NoPadding")
         .setPasswordLength(12)
+        .setAuthTagLength(128)
         .build();
 
     private final ComponentFactory<AAAEncryptionServiceImpl> factory;

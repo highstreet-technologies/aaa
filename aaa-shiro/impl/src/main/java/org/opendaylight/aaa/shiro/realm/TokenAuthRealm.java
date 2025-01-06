@@ -21,11 +21,9 @@ import org.apache.shiro.authz.AuthorizationInfo;
 import org.apache.shiro.authz.SimpleAuthorizationInfo;
 import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.subject.PrincipalCollection;
-import org.eclipse.jdt.annotation.Nullable;
 import org.opendaylight.aaa.api.Authentication;
 import org.opendaylight.aaa.api.AuthenticationService;
 import org.opendaylight.aaa.api.TokenAuth;
-import org.opendaylight.aaa.api.TokenStore;
 import org.opendaylight.aaa.api.shiro.principal.ODLPrincipal;
 import org.opendaylight.aaa.shiro.principal.ODLPrincipalImpl;
 import org.opendaylight.aaa.shiro.realm.util.TokenUtils;
@@ -43,37 +41,27 @@ public class TokenAuthRealm extends AuthorizingRealm {
     private static final Logger LOG = LoggerFactory.getLogger(TokenAuthRealm.class);
     private static final ThreadLocal<TokenAuthenticators> AUTHENICATORS_TL = new ThreadLocal<>();
     private static final ThreadLocal<AuthenticationService> AUTH_SERVICE_TL = new ThreadLocal<>();
-    private static final ThreadLocal<TokenStore> TOKEN_STORE_TL = new ThreadLocal<>();
 
     private final TokenAuthenticators authenticators;
     private final AuthenticationService authService;
-    private final TokenStore tokenStore;
 
     public TokenAuthRealm() {
-        this(verifyLoad(AUTH_SERVICE_TL), verifyLoad(AUTHENICATORS_TL), TOKEN_STORE_TL.get());
+        this(verifyLoad(AUTH_SERVICE_TL), verifyLoad(AUTHENICATORS_TL));
     }
 
     public TokenAuthRealm(final AuthenticationService authService, final TokenAuthenticators authenticators) {
-        this(authService, authenticators, null);
-    }
-
-    public TokenAuthRealm(final AuthenticationService authService, final TokenAuthenticators authenticators,
-            final @Nullable TokenStore tokenStore) {
         this.authService = requireNonNull(authService);
         this.authenticators = requireNonNull(authenticators);
-        this.tokenStore = tokenStore;
         super.setName("TokenAuthRealm");
     }
 
     public static Registration prepareForLoad(final AuthenticationService authService,
-            final TokenAuthenticators authenticators, final @Nullable TokenStore tokenStore) {
+            final TokenAuthenticators authenticators) {
         AUTH_SERVICE_TL.set(requireNonNull(authService));
         AUTHENICATORS_TL.set(requireNonNull(authenticators));
-        TOKEN_STORE_TL.set(tokenStore);
         return () -> {
             AUTH_SERVICE_TL.remove();
             AUTHENICATORS_TL.remove();
-            TOKEN_STORE_TL.remove();
         };
     }
 
@@ -84,8 +72,7 @@ public class TokenAuthRealm extends AuthorizingRealm {
     /**
      * {@inheritDoc}
      *
-     * <p>
-     * Roles are derived from {@code TokenAuth.authenticate()}. Shiro roles are identical to existing IDM roles.
+     * <p>Roles are derived from {@code TokenAuth.authenticate()}. Shiro roles are identical to existing IDM roles.
      */
     @Override
     protected AuthorizationInfo doGetAuthorizationInfo(final PrincipalCollection principalCollection) {
@@ -101,8 +88,7 @@ public class TokenAuthRealm extends AuthorizingRealm {
     /**
      * {@inheritDoc}
      *
-     * <p>
-     * Authenticates against any {@code TokenAuth} registered with the {@code ServiceLocator}.
+     * <p>Authenticates against any {@code TokenAuth} registered with the {@code ServiceLocator}.
      */
     @Override
     protected AuthenticationInfo doGetAuthenticationInfo(final AuthenticationToken authenticationToken)

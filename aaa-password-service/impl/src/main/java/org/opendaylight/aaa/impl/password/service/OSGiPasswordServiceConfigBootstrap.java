@@ -12,12 +12,11 @@ import static java.util.Objects.requireNonNull;
 import com.google.common.annotations.Beta;
 import org.opendaylight.mdsal.binding.api.DataBroker;
 import org.opendaylight.mdsal.binding.api.DataListener;
-import org.opendaylight.mdsal.binding.api.DataTreeIdentifier;
 import org.opendaylight.mdsal.common.api.LogicalDatastoreType;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.aaa.password.service.config.rev170619.PasswordServiceConfig;
 import org.opendaylight.yang.gen.v1.urn.opendaylight.aaa.password.service.config.rev170619.PasswordServiceConfigBuilder;
+import org.opendaylight.yangtools.binding.DataObjectIdentifier;
 import org.opendaylight.yangtools.concepts.Registration;
-import org.opendaylight.yangtools.yang.binding.InstanceIdentifier;
 import org.osgi.service.component.ComponentFactory;
 import org.osgi.service.component.ComponentInstance;
 import org.osgi.service.component.annotations.Activate;
@@ -33,7 +32,9 @@ public final class OSGiPasswordServiceConfigBootstrap implements DataListener<Pa
     private static final Logger LOG = LoggerFactory.getLogger(OSGiPasswordServiceConfigBootstrap.class);
 
     private final ComponentFactory<OSGiPasswordServiceConfig> configFactory;
-    private Registration registration;
+    private final Registration registration;
+
+    private boolean active;
     private ComponentInstance<?> instance;
 
     @Activate
@@ -41,33 +42,50 @@ public final class OSGiPasswordServiceConfigBootstrap implements DataListener<Pa
             @Reference(target = "(component.factory=" + OSGiPasswordServiceConfig.FACTORY_NAME + ")")
             final ComponentFactory<OSGiPasswordServiceConfig> configFactory) {
         this.configFactory  = requireNonNull(configFactory);
-        registration = dataBroker.registerDataListener(
-            DataTreeIdentifier.of(LogicalDatastoreType.CONFIGURATION,
-                InstanceIdentifier.create(PasswordServiceConfig.class)), this);
+
+        synchronized (this) {
+            active = true;
+        }
+
+        registration = dataBroker.registerDataListener(LogicalDatastoreType.CONFIGURATION,
+            DataObjectIdentifier.builder(PasswordServiceConfig.class).build(), this);
         LOG.info("Listening for password service configuration");
     }
 
     @Deactivate
     synchronized void deactivate() {
+        active = false;
         registration.close();
-        registration = null;
-        if (instance != null) {
-            instance.dispose();
-            instance = null;
-        }
         LOG.info("No longer listening for password service configuration");
+
+        final var oldInstance = instance;
+        instance = null;
+        disposeInstance(oldInstance);
     }
 
     @Override
     public synchronized void dataChangedTo(final PasswordServiceConfig data) {
+        LOG.debug("Data changed to {}", data);
+
+        if (!active) {
+            LOG.debug("Ignoring change after shutdown");
+            return;
+        }
+
         // FIXME: at this point we need to populate default values -- from the XML file
-        if (registration != null) {
-            final var newInstance = configFactory.newInstance(
-                OSGiPasswordServiceConfig.props(data != null ? data : new PasswordServiceConfigBuilder().build()));
-            if (instance != null) {
-                instance.dispose();
-            }
-            instance = newInstance;
+        final var newInstance = configFactory.newInstance(
+            OSGiPasswordServiceConfig.props(data != null ? data : new PasswordServiceConfigBuilder().build()));
+        LOG.debug("Instantiated configuration {}", newInstance);
+
+        final var oldInstance = instance;
+        instance = newInstance;
+        disposeInstance(oldInstance);
+    }
+
+    private static void disposeInstance(final ComponentInstance<?> instance) {
+        if (instance != null) {
+            LOG.debug("Disposing of configuration {}", instance);
+            instance.dispose();
         }
     }
 }
