@@ -15,6 +15,7 @@
     <relativePath>../parent/pom.xml</relativePath>
   </parent>
 
+  <groupId>com.highstreet-technologies.aaa</groupId>
   <artifactId>aaa-authn-api</artifactId>
   <name>ODL :: aaa :: ${project.artifactId}</name>
   <packaging>bundle</packaging>
